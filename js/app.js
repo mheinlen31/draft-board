@@ -115,8 +115,10 @@
     if (cost > st.maxBid) return flash(`Over max bid — ${t.name} can only bid $${st.maxBid}`);
     if (takenNames().has(norm(p.name))) return flash(`${p.name} is already rostered`);
 
+    freshPick = p.name;
     const pick = S.addPick({ ti, name: p.name, pos: p.pos, nfl: p.nfl, img: p.img,
       cost, rank: p.rank != null ? p.rank : E.rankOf(p), aav: p.aav });
+    setTimeout(() => { freshPick = null; }, 2600);
     splash(t, pick);
     inp.value = ''; $('f-cost').value = ''; picked = null; closeTA();
     inp.focus();
@@ -149,10 +151,14 @@
   $('splash').addEventListener('click', () => { $('splash').hidden = true; });
 
   /* ---------- render ---------- */
+  let freshPick = null;   // most recent pick, flashed in place for one render
+
   function slotRow(slot, p) {
-    if (!p) return `<div class="slot empty"><span class="sl">${slot.label}</span>
+    const bench = slot.id[0] === 'B' ? ' bench' : '';
+    if (!p) return `<div class="slot empty${bench}"><span class="sl">${slot.label}</span>
       <span class="sp">—</span></div>`;
-    return `<div class="slot${p.keeper ? ' keeper' : ''}">
+    const fresh = freshPick && p.name === freshPick ? ' fresh' : '';
+    return `<div class="slot${bench}${p.keeper ? ' keeper' : ''}${fresh}">
       <span class="sl">${slot.label}</span>
       <span class="sp">${esc(p.name)}${p.keeper ? '<i class="kx">K</i>' : ''}</span>
       <span class="sc">$${p.cost}</span>
