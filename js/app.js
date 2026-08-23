@@ -159,6 +159,7 @@
       cost, rank: p.rank != null ? p.rank : E.rankOf(p), aav: p.aav });
     setTimeout(() => { freshPick = null; }, 2600);
     hideClock();          // SOLD splash takes over from the clock
+    horn();
     splash(t, pick);
     inp.value = ''; $('f-cost').value = ''; picked = null; closeTA();
     inp.focus();
@@ -170,6 +171,36 @@
     el.textContent = msg;
     document.body.appendChild(el);
     setTimeout(() => el.remove(), 2600);
+  }
+
+  /* ---------- SOLD horn ----------
+     Synthesized rather than a sound file so the board still works with no
+     network at the venue. Two stacked fifths with a quick swell = stadium
+     air-horn, short enough not to wear out over 150 picks. */
+  let audioCtx = null;
+  const soundOn = () => localStorage.getItem('sf-draft-mute') !== '1';
+  function horn() {
+    if (!soundOn()) return;
+    try {
+      audioCtx = audioCtx || new (window.AudioContext || window.webkitAudioContext)();
+      if (audioCtx.state === 'suspended') audioCtx.resume();
+      const t0 = audioCtx.currentTime;
+      const master = audioCtx.createGain();
+      master.connect(audioCtx.destination);
+      master.gain.setValueAtTime(0.0001, t0);
+      master.gain.exponentialRampToValueAtTime(0.32, t0 + 0.06);   // swell
+      master.gain.setValueAtTime(0.32, t0 + 0.42);
+      master.gain.exponentialRampToValueAtTime(0.0001, t0 + 0.72); // fall off
+      [233.08, 349.23, 466.16].forEach((f, i) => {                 // Bb + F + Bb
+        const o = audioCtx.createOscillator();
+        const g = audioCtx.createGain();
+        o.type = 'sawtooth';
+        o.frequency.setValueAtTime(f, t0);
+        g.gain.value = [0.5, 0.34, 0.2][i];
+        o.connect(g); g.connect(master);
+        o.start(t0); o.stop(t0 + 0.75);
+      });
+    } catch (e) { /* audio blocked — the board is still fully usable */ }
   }
 
   /* ---------- splash ---------- */
@@ -247,7 +278,22 @@
     if (confirm('Remove this pick? (misentry)')) S.removePick(+t.dataset.n);
   });
 
-  $('btn-undo').addEventListener('click', () => { if (!S.undo()) flash('Nothing to undo'); });
+  /* ---------- undo: the draft-night safety net ----------
+     A mistyped price or wrong team is the likeliest mistake at speed, so undo
+     is reachable three ways: the button, Ctrl/Cmd+Z anywhere, and clicking a
+     pick in the crawl. Every path says out loud what it just reversed. */
+  function doUndo() {
+    const last = state().picks[state().picks.length - 1];
+    if (!S.undo()) return flash('Nothing to undo');
+    flash(last ? `Undid ${last.name} · $${last.cost}` : 'Undid last change');
+  }
+  $('btn-undo').addEventListener('click', doUndo);
+  document.addEventListener('keydown', (e) => {
+    if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'z') {
+      e.preventDefault();
+      doUndo();
+    }
+  });
 
   /* ---------- keeper setup ---------- */
   const kModal = $('keeper-modal');
@@ -299,6 +345,17 @@
       rows.map((r) => r.map((c) => `"${String(c).replace(/"/g, '""')}"`).join(',')).join('\n'),
       'text/csv');
   });
+  const muteBtn = $('m-mute');
+  const paintMute = () => {
+    muteBtn.textContent = soundOn() ? 'Sound: on (SOLD horn)' : 'Sound: off';
+  };
+  muteBtn.addEventListener('click', () => {
+    localStorage.setItem('sf-draft-mute', soundOn() ? '1' : '');
+    paintMute();
+    if (soundOn()) horn();          // preview it when switching back on
+  });
+  paintMute();
+
   $('m-reset').addEventListener('click', () => {
     if (confirm('Reset the entire draft? This clears all picks and keepers.')) {
       S.reset(); mModal.hidden = true;

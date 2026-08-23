@@ -26,7 +26,15 @@ Works fully offline once loaded — no wifi needed during the draft.
    **Undo** for the last action.
 4. **After:** **⋯ → Export** saves the results as JSON or CSV.
 
-Press `/` anywhere to jump back to the player field.
+### Shortcuts
+
+| Key | Does |
+|---|---|
+| `/` | Jump to the player field |
+| `Ctrl`/`⌘` + `Z` | Undo the last pick (works anywhere) |
+| `Esc` | Cancel a nomination and clear the fields |
+
+A short horn plays on each SOLD — toggle it from **⋯ → Sound**.
 
 ## What each team card shows
 
