@@ -63,14 +63,32 @@ on screen, so nothing tips the room off about who needs to bid on what.
 - Everything saves to the browser automatically — a refresh or crash mid-draft
   loses nothing
 
-## Data
+## Before draft night
 
-`js/keeperdata.js` is a snapshot of the keeper site's `js/data.js` (rosters,
-keeper prices, trade-adjusted purses, headshots, the free-agent pool). To
-re-sync before the draft:
+The 2026 timeline:
+
+| When | What |
+|---|---|
+| Wed **Sept 2**, noon CT | Keeper values lock — ESPN stops mattering |
+| Fri **Sept 4**, 7pm CT | Keepers + trades due |
+| Mon **Sept 7** (Labor Day) | **Draft** |
+
+Run this once on **Sept 5 or 6** — after keepers are in, before draft day:
 
 ```bash
-cp ~/sunday-funday/js/data.js ~/draft-board/js/keeperdata.js
+~/draft-board/prep.sh
 ```
 
-Do this **after** the Sept 2 values lock so keeper prices are final.
+It syncs final keeper values and post-trade rosters from the keeper site,
+refreshes the draftable player pool from ESPN (catching late signings and
+rookie moves), cache-busts the page, and pushes it live.
+
+Then on draft night: open the board, hit **Keepers**, and tap what each team
+actually kept.
+
+### Data files
+
+- `js/keeperdata.js` — snapshot of the keeper site's `js/data.js` (rosters,
+  keeper prices, trade-adjusted purses, headshots)
+- `js/players.js` — ESPN's full draftable pool (~1,000 players incl. every
+  kicker and defense), rebuilt by `build_players.py`
