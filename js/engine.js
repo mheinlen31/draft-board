@@ -77,6 +77,18 @@ window.DraftEngine = (function () {
     return { slots, overflow: left };   // overflow = beyond 15 (shouldn't happen)
   }
 
+  /* Which starting slots are still empty — what a team actually needs.
+     Bench spots aren't "needs"; they're depth. */
+  function needsOf(slots) {
+    const out = [];
+    ['QB', 'RB1', 'RB2', 'WR1', 'WR2', 'TE', 'FLEX', 'K', 'DEF'].forEach((id) => {
+      if (slots[id]) return;
+      const label = { RB1: 'RB', RB2: 'RB', WR1: 'WR', WR2: 'WR', DEF: 'D/ST' }[id] || id;
+      if (!out.includes(label)) out.push(label);
+    });
+    return out;
+  }
+
   function teamState(team) {
     const players = team.players || [];
     const spent = players.reduce((s, p) => s + (+p.cost || 0), 0);
@@ -87,11 +99,13 @@ window.DraftEngine = (function () {
     const maxBid = open > 0 ? Math.max(0, remaining - (open - 1)) : 0;
     const drafted = players.filter((p) => !p.keeper);
     const draftSpend = drafted.reduce((s, p) => s + (+p.cost || 0), 0);
+    const assigned = assignSlots(players);
     return {
       spent, remaining, filled, open, maxBid,
+      needs: needsOf(assigned.slots),
       avgPerPick: drafted.length ? draftSpend / drafted.length : 0,
       avgPerOpen: open > 0 ? remaining / open : 0,
-      ...assignSlots(players),
+      ...assigned,
     };
   }
 

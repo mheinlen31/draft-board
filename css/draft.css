@@ -38,14 +38,21 @@ body {
   background-attachment: fixed;
   color: var(--ink);
   font-family: var(--data);
-  min-height: 100vh;
+  height: 100vh; height: 100dvh; overflow: hidden;
   display: flex; flex-direction: column;
   -webkit-font-smoothing: antialiased;
+}
+/* narrow screens (a laptop or phone checking in) go back to normal scrolling */
+@media (max-width: 1150px) {
+  body { height: auto; min-height: 100vh; overflow: visible; }
+  .grid { grid-auto-rows: auto; align-content: start; }
+  .slots { overflow: visible; }
 }
 :focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
 
 /* ============================ CONTROL CHYRON ============================= */
 .bar {
+  flex: 0 0 auto;
   display: flex; align-items: center; gap: 16px;
   padding: 9px 16px;
   background: var(--chyron);
@@ -134,11 +141,15 @@ body {
 .mini:disabled { opacity: .35; cursor: default; }
 
 /* ============================== TEAM GRID =============================== */
+/* The board must fit ONE screen — it lives on a mounted TV where nobody is
+   scrolling. Two rows of five, each row sized to the space available, and the
+   roster list inside a card scrolls only if that card overflows. */
 .grid {
-  flex: 1 1 auto;
+  flex: 1 1 auto; min-height: 0;
   display: grid; gap: 9px; padding: 11px 12px;
   grid-template-columns: repeat(5, 1fr);
-  align-content: start;
+  grid-auto-rows: 1fr;
+  align-content: stretch;
 }
 @media (max-width: 1500px) { .grid { grid-template-columns: repeat(4, 1fr); } }
 @media (max-width: 1150px) { .grid { grid-template-columns: repeat(3, 1fr); } }
@@ -146,7 +157,8 @@ body {
 @media (max-width: 560px)  { .grid { grid-template-columns: 1fr; } }
 
 .team {
-  position: relative;
+  position: relative; min-height: 0;
+  display: flex; flex-direction: column;
   background: linear-gradient(180deg, var(--panel2) 0%, var(--panel) 42%);
   border: 1px solid var(--line);
   border-radius: 4px; overflow: hidden;
@@ -192,7 +204,11 @@ body {
 .num.minor span { color: var(--dim); }
 
 /* ------------------------------ roster slots ---------------------------- */
-.slots { padding: 3px 0 4px; }
+.slots {
+  padding: 3px 0 4px; flex: 1 1 auto; min-height: 0;
+  overflow-y: auto; scrollbar-width: none;
+}
+.slots::-webkit-scrollbar { display: none; }
 .slot {
   display: flex; align-items: center; gap: 7px;
   padding: 3px 11px; font-size: 13px;
@@ -241,6 +257,7 @@ body {
 
 /* =============================== CRAWL ================================== */
 .ticker {
+  flex: 0 0 auto;
   display: flex; align-items: stretch; gap: 0;
   background: var(--chyron);
   border-top: 1px solid var(--line);
@@ -560,3 +577,12 @@ body {
   font-family: var(--data); font-size: 8.5px; font-weight: 800;
   letter-spacing: .12em; text-transform: uppercase; color: var(--faint);
 }
+
+/* teams that still need the position on the clock — the likely bidders */
+.cm-row.need { background: linear-gradient(90deg, rgba(255,201,74,.10), transparent 72%); }
+.cm-need {
+  display: block; font-family: var(--data); font-style: normal;
+  font-size: 8.5px; font-weight: 800; letter-spacing: .13em;
+  text-transform: uppercase; color: var(--gold); margin-top: 1px;
+}
+.cm-row.out .cm-need { color: var(--dim); }

@@ -103,32 +103,39 @@
     $('clock-img').onerror = function () { this.onerror = null; this.src = FALLBACK; };
     $('clock-name').textContent = p.name;
     $('clock-meta').textContent = [p.pos, p.nfl].filter(Boolean).join(' · ') || ' ';
+    clockPos = p.pos || null;
     $('clock').hidden = false;
     syncBid();          // paints the money rail too
   }
   function hideClock() { $('clock').hidden = true; }
+  let clockPos = null;      // position of the player currently up
   function syncBid() {
     const v = parseInt($('f-cost').value, 10);
     const el = $('clock-bid');
     el.textContent = v >= 1 ? '$' + v : '—';
     el.classList.toggle('none', !(v >= 1));
-    renderMoney(v);           // grey out anyone who can't beat the live bid
+    renderMoney(v, clockPos); // grey out who can't beat the bid; flag who needs him
   }
   $('f-cost').addEventListener('input', syncBid);
 
   /* every team's money, richest max-bid first — the question the room is
      actually asking while a player is up */
-  function renderMoney(bid) {
+  function renderMoney(bid, pos) {
+    // "Needs" means a real positional hole in the starting lineup. FLEX is
+    // deliberately excluded — every RB/WR/TE fills it, so counting it would
+    // flag all ten teams early and tell the room nothing.
+    const wants = (st) => !!pos && st.needs.includes(pos);
     const rows = state().teams
       .map((t) => ({ t, st: E.teamState(t) }))
       .sort((a, b) => b.st.maxBid - a.st.maxBid || b.st.remaining - a.st.remaining);
     $('clock-money-list').innerHTML = rows.map(({ t, st }) => {
       const full = st.open <= 0;
       const out = !full && bid >= 1 && st.maxBid <= bid;
-      return `<div class="cm-row${out ? ' out' : ''}${full ? ' full' : ''}"
+      const need = !full && wants(st);
+      return `<div class="cm-row${out ? ' out' : ''}${full ? ' full' : ''}${need ? ' need' : ''}"
           style="--tc:${COLORS[t.ti % 10]}">
         <span class="cm-bar"></span>
-        <span class="cm-team">${esc(t.name)}</span>
+        <span class="cm-team">${esc(t.name)}${need ? `<i class="cm-need">needs ${esc(pos)}</i>` : ''}</span>
         <span class="cm-left">$${st.remaining}</span>
         <span class="cm-max">${full ? '<span class="cm-tag">full</span>' : '$' + st.maxBid}</span>
       </div>`;
