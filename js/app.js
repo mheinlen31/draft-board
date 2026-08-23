@@ -120,24 +120,26 @@
 
   /* every team's money, richest max-bid first — the question the room is
      actually asking while a player is up */
+  /* Money only. Deliberately NO positional-need hints: the board must not
+     tip the room off about who has to bid on what — that's each owner's
+     business. Rules are enforced at entry instead (see canRoster). */
   function renderMoney(bid, pos) {
-    // "Needs" means a real positional hole in the starting lineup. FLEX is
-    // deliberately excluded — every RB/WR/TE fills it, so counting it would
-    // flag all ten teams early and tell the room nothing.
-    const wants = (st) => !!pos && st.needs.includes(pos);
     const rows = state().teams
       .map((t) => ({ t, st: E.teamState(t) }))
       .sort((a, b) => b.st.maxBid - a.st.maxBid || b.st.remaining - a.st.remaining);
     $('clock-money-list').innerHTML = rows.map(({ t, st }) => {
       const full = st.open <= 0;
+      // can't legally take this player: roster full, position maxed, or the
+      // remaining spots are all spoken for by unfilled starters
+      const blocked = !!pos && !full && !E.canRoster(t, pos).ok;
       const out = !full && bid >= 1 && st.maxBid <= bid;
-      const need = !full && wants(st);
-      return `<div class="cm-row${out ? ' out' : ''}${full ? ' full' : ''}${need ? ' need' : ''}"
+      return `<div class="cm-row${out ? ' out' : ''}${full || blocked ? ' full' : ''}"
           style="--tc:${COLORS[t.ti % 10]}">
         <span class="cm-bar"></span>
-        <span class="cm-team">${esc(t.name)}${need ? `<i class="cm-need">needs ${esc(pos)}</i>` : ''}</span>
+        <span class="cm-team">${esc(t.name)}</span>
         <span class="cm-left">$${st.remaining}</span>
-        <span class="cm-max">${full ? '<span class="cm-tag">full</span>' : '$' + st.maxBid}</span>
+        <span class="cm-max">${full ? '<span class="cm-tag">full</span>'
+          : blocked ? '<span class="cm-tag">n/a</span>' : '$' + st.maxBid}</span>
       </div>`;
     }).join('');
   }
@@ -160,6 +162,9 @@
     if (st.open <= 0) return flash(`${t.name} roster is full`);
     if (cost > st.maxBid) return flash(`Over max bid — ${t.name} can only bid $${st.maxBid}`);
     if (takenNames().has(norm(p.name))) return flash(`${p.name} is already rostered`);
+    // league roster rules: position maximums + must finish a full starting lineup
+    const legal = E.canRoster(t, p.pos);
+    if (!legal.ok) return flash(`${t.name} ${legal.why}`);
 
     freshPick = p.name;
     const pick = S.addPick({ ti, name: p.name, pos: p.pos, nfl: p.nfl, img: p.img,

@@ -577,12 +577,3 @@ body {
   font-family: var(--data); font-size: 8.5px; font-weight: 800;
   letter-spacing: .12em; text-transform: uppercase; color: var(--faint);
 }
-
-/* teams that still need the position on the clock — the likely bidders */
-.cm-row.need { background: linear-gradient(90deg, rgba(255,201,74,.10), transparent 72%); }
-.cm-need {
-  display: block; font-family: var(--data); font-style: normal;
-  font-size: 8.5px; font-weight: 800; letter-spacing: .13em;
-  text-transform: uppercase; color: var(--gold); margin-top: 1px;
-}
-.cm-row.out .cm-need { color: var(--dim); }

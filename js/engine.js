@@ -77,6 +77,40 @@ window.DraftEngine = (function () {
     return { slots, overflow: left };   // overflow = beyond 15 (shouldn't happen)
   }
 
+  /* ---------------------------- LEAGUE ROSTER RULES ----------------------
+     Per the league settings: every team must end the draft with a full
+     starting lineup, and may not exceed the per-position maximums. Both are
+     enforced when a pick is entered — the board never hints at them. */
+  const POS_MAX = { QB: 4, RB: 8, WR: 8, TE: 4, 'D/ST': 3, K: 3 };
+  const REQUIRED = ['QB', 'RB1', 'RB2', 'WR1', 'WR2', 'TE', 'FLEX', 'K', 'DEF'];
+
+  // minimum number of further players needed to complete the starting lineup
+  function unfilledStarters(players) {
+    const { slots } = assignSlots(players);
+    return REQUIRED.filter((id) => !slots[id]).length;
+  }
+
+  /* Can this team legally roster one more player at `pos`? */
+  function canRoster(team, pos) {
+    const players = (team.players || []);
+    const open = ROSTER_SIZE - players.length;
+    if (open <= 0) return { ok: false, why: 'roster is full' };
+    if (!pos) return { ok: true };            // unknown position (free-typed)
+
+    const max = POS_MAX[pos];
+    if (max != null) {
+      const have = players.filter((p) => p.pos === pos).length;
+      if (have >= max) return { ok: false, why: `already has the max ${max} ${pos}` };
+    }
+    // would taking him leave too few spots to finish the starting lineup?
+    const after = players.concat([{ name: '__probe__', pos, cost: 0, rank: 9999 }]);
+    const stillNeeded = unfilledStarters(after);
+    if (stillNeeded > open - 1) {
+      return { ok: false, why: 'needs the remaining spots for starters' };
+    }
+    return { ok: true };
+  }
+
   /* Which starting slots are still empty — what a team actually needs.
      Bench spots aren't "needs"; they're depth. */
   function needsOf(slots) {
@@ -109,5 +143,6 @@ window.DraftEngine = (function () {
     };
   }
 
-  return { ROSTER_SIZE, SLOTS, assignSlots, teamState, rankOf, normName, betterFirst };
+  return { ROSTER_SIZE, SLOTS, POS_MAX, assignSlots, teamState, canRoster,
+    unfilledStarters, rankOf, normName, betterFirst };
 })();

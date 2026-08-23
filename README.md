@@ -49,9 +49,17 @@ Players auto-slot into QB / RB×2 / WR×2 / TE / FLEX / K / D-ST / 6 bench.
 
 ## Guardrails
 
+The board enforces the league's roster rules at entry — it never hints at them
+on screen, so nothing tips the room off about who needs to bid on what.
+
 - Blocks bids over a team's legal max bid
 - Blocks drafting a player who's already rostered
 - Blocks picks once a roster is full
+- **Position maximums:** QB 4, RB 8, WR 8, TE 4, D/ST 3, K 3
+- **Starter protection:** every team must finish with a full starting lineup
+  (QB, 2 RB, 2 WR, TE, FLEX, D/ST, K), so a pick is blocked if it would leave
+  too few spots to fill the remaining starters — e.g. no more WRs with two
+  spots left and no kicker or defense yet
 - Everything saves to the browser automatically — a refresh or crash mid-draft
   loses nothing
 
