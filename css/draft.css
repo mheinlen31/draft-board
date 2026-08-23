@@ -423,3 +423,74 @@ body {
   padding: 12px 26px;
   box-shadow: 0 14px 40px rgba(0,0,0,.6);
 }
+
+/* ========================== ON THE CLOCK TAKEOVER =======================
+   Fills the board while the room bids. Deliberately sits BELOW the control
+   bar's z-index so the operator keeps typing the price on the same screen. */
+.clock {
+  position: fixed; inset: 0; z-index: 35;
+  background:
+    radial-gradient(900px 520px at 50% 42%, rgba(18,29,54,.97), rgba(5,8,15,.99));
+  display: flex; align-items: center; justify-content: center;
+  padding: 90px 40px 40px;
+}
+.clock[hidden] { display: none; }
+.clock-inner {
+  width: min(1250px, 94vw);
+  display: flex; flex-direction: column; align-items: center; gap: clamp(14px, 2.4vw, 30px);
+  text-align: center;
+}
+.clock-eyebrow {
+  display: inline-flex; align-items: center; gap: 11px;
+  font-family: var(--data); font-size: clamp(13px, 1.5vw, 20px); font-weight: 800;
+  letter-spacing: .42em; text-transform: uppercase; color: #fff;
+  background: linear-gradient(180deg, #f0242d, var(--red-dk));
+  padding: 9px 26px 9px 22px; border-radius: 2px;
+  box-shadow: 0 8px 30px rgba(224,27,36,.35);
+}
+.clock-eyebrow .dot {
+  width: 10px; height: 10px; border-radius: 50%; background: #fff;
+  animation: livepulse 1.4s ease-in-out infinite;
+}
+@keyframes livepulse { 0%,100% { opacity: 1; } 50% { opacity: .25; } }
+
+.clock-body { display: flex; align-items: center; gap: clamp(20px, 3.5vw, 52px); }
+.clock-mug {
+  width: clamp(120px, 17vw, 260px); height: clamp(90px, 13vw, 195px);
+  object-fit: contain; flex: 0 0 auto;
+  filter: drop-shadow(0 16px 40px rgba(0,0,0,.75));
+}
+.clock-text { text-align: left; min-width: 0; }
+.clock-name {
+  font-family: var(--display); font-weight: 800;
+  font-size: clamp(54px, 9.5vw, 150px); line-height: .9;
+  text-transform: uppercase; letter-spacing: -.008em; color: #fff;
+  text-shadow: 0 6px 34px rgba(0,0,0,.7);
+  text-wrap: balance;
+}
+.clock-meta {
+  font-family: var(--data); font-size: clamp(14px, 1.9vw, 26px); font-weight: 700;
+  letter-spacing: .26em; text-transform: uppercase; color: var(--soft);
+  margin-top: 10px;
+}
+.clock-bid {
+  display: flex; align-items: baseline; gap: 18px;
+  border-top: 1px solid var(--line2); padding-top: clamp(12px, 2vw, 22px);
+  min-width: min(560px, 80vw); justify-content: center;
+}
+.clock-bid-label {
+  font-family: var(--data); font-size: clamp(11px, 1.2vw, 15px); font-weight: 700;
+  letter-spacing: .3em; text-transform: uppercase; color: var(--faint);
+}
+.clock-bid-amt {
+  font-family: var(--display); font-weight: 800;
+  font-size: clamp(46px, 7vw, 104px); line-height: 1;
+  color: var(--gold); letter-spacing: -.01em;
+  font-variant-numeric: tabular-nums;
+  text-shadow: 0 6px 30px rgba(255,201,74,.25);
+}
+.clock-bid-amt.none { color: var(--dim); text-shadow: none; }
+
+@media (prefers-reduced-motion: reduce) {
+  .clock-eyebrow .dot { animation: none; }
+}

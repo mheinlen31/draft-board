@@ -58,14 +58,14 @@
     taList.innerHTML = taHits.map((p, i) => `
       <div class="ta-item${i === taIdx ? ' on' : ''}" data-i="${i}">
         <span class="ta-name">${esc(p.name)}</span>
-        <span class="ta-meta">${esc(p.pos || '')}${p.nfl ? ' · ' + esc(p.nfl) : ''}${
-          p.aav >= 1 ? ` · <b>$${Math.round(p.aav)}</b> espn` : ''}</span>
+        <span class="ta-meta">${esc(p.pos || '')}${p.nfl ? ' · ' + esc(p.nfl) : ''}</span>
       </div>`).join('');
     taList.hidden = false;
   }
   inp.addEventListener('input', () => {
     picked = null;
     const q = norm(inp.value);
+    if (!q) hideClock();          // cleared the name -> drop the takeover
     if (q.length < 2) return closeTA();
     const taken = takenNames();
     taHits = POOL
@@ -93,8 +93,27 @@
     picked = taHits[i];
     inp.value = picked.name;
     closeTA();
+    showClock(picked);
     $('f-cost').focus();
   }
+
+  /* ---------- "on the clock" takeover while the room bids ---------- */
+  function showClock(p) {
+    $('clock-img').src = p.img || FALLBACK;
+    $('clock-img').onerror = function () { this.onerror = null; this.src = FALLBACK; };
+    $('clock-name').textContent = p.name;
+    $('clock-meta').textContent = [p.pos, p.nfl].filter(Boolean).join(' · ') || ' ';
+    syncBid();
+    $('clock').hidden = false;
+  }
+  function hideClock() { $('clock').hidden = true; }
+  function syncBid() {
+    const v = parseInt($('f-cost').value, 10);
+    const el = $('clock-bid');
+    el.textContent = v >= 1 ? '$' + v : '—';
+    el.classList.toggle('none', !(v >= 1));
+  }
+  $('f-cost').addEventListener('input', syncBid);
 
   /* ---------- submit a pick ---------- */
   $('pick-form').addEventListener('submit', (e) => {
@@ -119,6 +138,7 @@
     const pick = S.addPick({ ti, name: p.name, pos: p.pos, nfl: p.nfl, img: p.img,
       cost, rank: p.rank != null ? p.rank : E.rankOf(p), aav: p.aav });
     setTimeout(() => { freshPick = null; }, 2600);
+    hideClock();          // SOLD splash takes over from the clock
     splash(t, pick);
     inp.value = ''; $('f-cost').value = ''; picked = null; closeTA();
     inp.focus();
@@ -265,9 +285,14 @@
     }
   });
 
-  // keyboard: "/" jumps to the player field
+  // keyboard: "/" jumps to the player field; Esc clears an aborted nomination
   document.addEventListener('keydown', (e) => {
     if (e.key === '/' && document.activeElement !== inp) { e.preventDefault(); inp.focus(); }
+    if (e.key === 'Escape' && !$('clock').hidden) {
+      hideClock();
+      inp.value = ''; $('f-cost').value = ''; picked = null; closeTA();
+      inp.focus();
+    }
   });
 
   render();
