@@ -6,6 +6,14 @@ window.DraftStore = (function () {
   const listeners = [];
   const undo = [];
 
+  function rankFor(name) {
+    const key = String(name).toLowerCase().replace(/[^a-z ]/g, '').replace(/\s+/g, ' ').trim();
+    const ref = (window.DRAFT_PLAYERS || {}).players || [];
+    const hit = ref.find((x) => String(x.name).toLowerCase()
+      .replace(/[^a-z ]/g, '').replace(/\s+/g, ' ').trim() === key);
+    return hit ? hit.rank : 9999;
+  }
+
   function seed() {
     const K = window.LEAGUE_DATA;
     const teams = (K.teams || []).map((t, ti) => ({
@@ -15,6 +23,7 @@ window.DraftStore = (function () {
       keeperPool: t.players.map((p) => ({
         name: p.name, pos: p.pos, nfl: p.nfl || null, img: p.img || null,
         cost: p.price, keeper: true, status: p.status,
+        rank: rankFor(p.name), aav: p.market || 0,
       })),
     }));
     return { season: K.season || 2026, teams, picks: [], started: false };
@@ -55,11 +64,12 @@ window.DraftStore = (function () {
     },
     startDraft() { snapshot(); state.started = true; save(); },
 
-    addPick({ ti, name, pos, nfl, img, cost }) {
+    addPick({ ti, name, pos, nfl, img, cost, rank, aav }) {
       snapshot();
       const t = this.team(ti);
       const pick = { name, pos, nfl: nfl || null, img: img || null,
         cost: +cost, keeper: false, n: state.picks.length + 1,
+        rank: rank == null ? 9999 : rank, aav: aav || 0,
         ts: Date.now() };
       t.players.push(pick);
       state.picks.push({ ...pick, ti, team: t.name });

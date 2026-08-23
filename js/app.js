@@ -28,12 +28,17 @@
     if (k && !uniq.has(k)) uniq.set(k, p);
   };
   ((window.DRAFT_PLAYERS || {}).players || []).forEach((p) =>
-    add({ name: p.name, pos: p.pos, nfl: p.nfl, img: p.img, aav: p.aav }));
+    add({ name: p.name, pos: p.pos, nfl: p.nfl, img: p.img, aav: p.aav, rank: p.rank }));
   (K.teams || []).forEach((t) => t.players.forEach((p) =>
     add({ name: p.name, pos: p.pos, nfl: p.nfl, img: p.img, aav: p.market })));
   (K.pool || []).forEach((p) =>
     add({ name: p.name, pos: p.pos, nfl: p.nfl, img: p.img, aav: p.market }));
   const POOL = [...uniq.values()];
+  // name -> ranked entry, so keepers (which come from the keeper site, with no
+  // rank of their own) still slot by rank
+  window.DRAFT_PLAYERS = window.DRAFT_PLAYERS || {};
+  window.DRAFT_PLAYERS.byName = Object.fromEntries(
+    ((window.DRAFT_PLAYERS.players) || []).map((p) => [norm(p.name), p]));
 
   const takenNames = () => new Set(state().teams.flatMap((t) =>
     t.players.map((p) => norm(p.name))));
@@ -110,7 +115,8 @@
     if (cost > st.maxBid) return flash(`Over max bid — ${t.name} can only bid $${st.maxBid}`);
     if (takenNames().has(norm(p.name))) return flash(`${p.name} is already rostered`);
 
-    const pick = S.addPick({ ti, name: p.name, pos: p.pos, nfl: p.nfl, img: p.img, cost });
+    const pick = S.addPick({ ti, name: p.name, pos: p.pos, nfl: p.nfl, img: p.img,
+      cost, rank: p.rank != null ? p.rank : E.rankOf(p), aav: p.aav });
     splash(t, pick);
     inp.value = ''; $('f-cost').value = ''; picked = null; closeTA();
     inp.focus();
@@ -155,12 +161,13 @@
 
   function teamCard(t) {
     const st = E.teamState(t);
-    const low = st.remaining <= 5;
-    return `<section class="team" style="--tc:${COLORS[t.ti % 10]}">
+    const over = st.remaining < 0;                  // shouldn't happen; loudly flag if it does
+    const low = !over && st.remaining <= 5;
+    return `<section class="team${over ? ' over' : ''}" style="--tc:${COLORS[t.ti % 10]}">
       <header class="team-top">
-        <h2>${esc(t.name)}</h2>
+        <h2>${esc(t.name)}${over ? ' <span class="warn">OVER BUDGET</span>' : ''}</h2>
         <div class="nums">
-          <div class="num big${low ? ' low' : ''}"><b>$${st.remaining}</b><span>left</span></div>
+          <div class="num big${low || over ? ' low' : ''}"><b>$${st.remaining}</b><span>left</span></div>
           <div class="num"><b>$${st.maxBid}</b><span>max bid</span></div>
           <div class="num"><b>${st.open}</b><span>spots</span></div>
           <div class="num"><b>$${st.avgPerOpen.toFixed(0)}</b><span>avg/spot</span></div>

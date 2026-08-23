@@ -21,31 +21,58 @@ window.DraftEngine = (function () {
     { id: 'B5', label: 'BE', takes: null }, { id: 'B6', label: 'BE', takes: null },
   ];
 
-  /* Fill starters first (most-constrained first so a TE doesn't eat FLEX while
-     TE is open), then FLEX, then bench. Recomputed from scratch on every change
-     so undo/edits can never leave a stale assignment. */
+  /* Rank-aware slotting, recomputed from scratch on every roster change so the
+     board always reflects the CURRENT best lineup (never acquisition order):
+
+       - Each positional slot goes to that position's best available player, so
+         a newly drafted stud takes RB1 and bumps the incumbent to RB2.
+       - FLEX then takes the best remaining RB/WR/TE overall — so a strong WR3
+         beats a weak RB3 for the spot, and a later, better pick takes it over.
+       - Whatever's left falls to the bench, best players first.
+
+     Lower `rank` = better (ESPN PPR overall rank); AAV breaks ties, then a
+     stable name sort so the display never jitters between equal players. */
+  const FLEX_POS = ['RB', 'WR', 'TE'];
+
+  function betterFirst(a, b) {
+    return (rankOf(a) - rankOf(b)) || ((b.aav || 0) - (a.aav || 0))
+      || String(a.name).localeCompare(String(b.name));
+  }
+  function rankOf(p) {
+    if (p.rank != null) return p.rank;
+    const ref = (window.DRAFT_PLAYERS || {}).byName;
+    const hit = ref && ref[normName(p.name)];
+    return hit ? hit.rank : 9999;
+  }
+  function normName(s) {
+    return String(s).toLowerCase().replace(/[^a-z ]/g, '').replace(/\s+/g, ' ').trim();
+  }
+
   function assignSlots(players) {
     const slots = {};
     SLOTS.forEach((s) => { slots[s.id] = null; });
-    const left = players.slice();
-    const put = (slotId, pred) => {
-      if (slots[slotId]) return;
-      const i = left.findIndex(pred);
+    // work on a rank-sorted copy: best players get first claim on every slot
+    const left = players.slice().sort(betterFirst);
+    const take = (slotId, ok) => {
+      const i = left.findIndex(ok);
       if (i >= 0) slots[slotId] = left.splice(i, 1)[0];
     };
-    // dedicated starters
-    put('QB', (p) => p.pos === 'QB');
-    put('RB1', (p) => p.pos === 'RB');
-    put('RB2', (p) => p.pos === 'RB');
-    put('WR1', (p) => p.pos === 'WR');
-    put('WR2', (p) => p.pos === 'WR');
-    put('TE', (p) => p.pos === 'TE');
-    put('K', (p) => p.pos === 'K');
-    put('DEF', (p) => p.pos === 'D/ST');
-    put('FLEX', (p) => ['RB', 'WR', 'TE'].includes(p.pos));
-    // remainder to bench, in acquisition order
+    const isPos = (pos) => (p) => p.pos === pos;
+
+    // dedicated starters, each taking the best available at that position
+    take('QB', isPos('QB'));
+    take('RB1', isPos('RB'));
+    take('RB2', isPos('RB'));
+    take('WR1', isPos('WR'));
+    take('WR2', isPos('WR'));
+    take('TE', isPos('TE'));
+    take('K', isPos('K'));
+    take('DEF', isPos('D/ST'));
+    // FLEX: best remaining RB/WR/TE regardless of position
+    take('FLEX', (p) => FLEX_POS.includes(p.pos));
+    // bench, best first
     ['B1', 'B2', 'B3', 'B4', 'B5', 'B6'].forEach((b) => {
-      if (!slots[b] && left.length) slots[b] = left.shift();
+      if (left.length) slots[b] = left.shift();
     });
     return { slots, overflow: left };   // overflow = beyond 15 (shouldn't happen)
   }
@@ -68,5 +95,5 @@ window.DraftEngine = (function () {
     };
   }
 
-  return { ROSTER_SIZE, SLOTS, assignSlots, teamState };
+  return { ROSTER_SIZE, SLOTS, assignSlots, teamState, rankOf, normName, betterFirst };
 })();

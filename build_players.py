@@ -71,15 +71,20 @@ def main():
             continue
         seen.add(norm(name))
         aav = (p.get("ownership") or {}).get("auctionValueAverage") or 0
+        # ESPN's PPR draft rank — the league is PPR, and it gives every player a
+        # distinct ordering (AAV alone ties ~850 players at $0)
+        ranks = p.get("draftRanksByRankType") or {}
+        rank = ((ranks.get("PPR") or ranks.get("STANDARD") or {}).get("rank")) or 9999
         out.append({
             "name": name, "pos": pos,
             "nfl": PRO_TEAM.get(p.get("proTeamId")) if pos != "D/ST" else None,
             "img": img(name, pos, p.get("id")),
             "aav": round(aav, 1),          # ESPN avg auction value, for reference
+            "rank": rank,                  # overall PPR rank; lower = better
         })
 
-    # most valuable first so typeahead surfaces the guys actually being bid on
-    out.sort(key=lambda x: (-x["aav"], x["name"]))
+    # best players first: rank drives it, AAV breaks any rank ties
+    out.sort(key=lambda x: (x["rank"], -x["aav"], x["name"]))
     payload = {"season": SEASON,
                "generated": datetime.now(timezone.utc).isoformat(timespec="seconds"),
                "players": out}
