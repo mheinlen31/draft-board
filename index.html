@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sunday Funday — Live Draft Board</title>
+<meta name="theme-color" content="#0b3d2c">
+<link rel="stylesheet" href="css/draft.css?v=DEV">
+</head>
+<body>
+
+<!-- full-screen splash on each pick -->
+<div id="splash" class="splash" hidden>
+  <div class="splash-inner">
+    <img id="splash-img" class="splash-mug" src="" alt="">
+    <div class="splash-text">
+      <div id="splash-team" class="splash-team"></div>
+      <div id="splash-name" class="splash-name"></div>
+      <div id="splash-meta" class="splash-meta"></div>
+    </div>
+    <div id="splash-cost" class="splash-cost"></div>
+  </div>
+</div>
+
+<header class="bar">
+  <div class="bar-brand">
+    <span class="bar-title">Sunday Funday</span>
+    <span class="bar-sub"><span id="season"></span> Auction Draft</span>
+  </div>
+
+  <form id="pick-form" class="pick-form" autocomplete="off">
+    <div class="typeahead">
+      <input id="f-player" class="fld fld-player" placeholder="Player…" autocomplete="off">
+      <div id="ta-list" class="ta-list" hidden></div>
+    </div>
+    <select id="f-team" class="fld fld-team"></select>
+    <input id="f-cost" class="fld fld-cost" type="number" min="1" placeholder="$" inputmode="numeric">
+    <button class="go" type="submit">Sold</button>
+  </form>
+
+  <div class="bar-right">
+    <span id="draft-stats" class="dstat"></span>
+    <button id="btn-undo" class="mini" type="button" title="Undo last action">Undo</button>
+    <button id="btn-keepers" class="mini" type="button">Keepers</button>
+    <button id="btn-menu" class="mini" type="button">⋯</button>
+  </div>
+</header>
+
+<main id="grid" class="grid"></main>
+
+<!-- recent picks ticker -->
+<footer class="ticker">
+  <span class="ticker-label">Last picks</span>
+  <div id="ticker" class="ticker-items"></div>
+</footer>
+
+<!-- keeper setup modal -->
+<div id="keeper-modal" class="modal" hidden>
+  <div class="modal-box">
+    <div class="modal-head">
+      <h2>Set keepers</h2>
+      <button class="mini" id="keeper-close" type="button">Done</button>
+    </div>
+    <p class="modal-note">Tap each player a team is keeping. Their keeper price
+      comes off that team's purse before bidding. Do this before the draft starts.</p>
+    <div id="keeper-body" class="keeper-body"></div>
+  </div>
+</div>
+
+<!-- menu modal -->
+<div id="menu-modal" class="modal" hidden>
+  <div class="modal-box narrow">
+    <div class="modal-head"><h2>Board</h2><button class="mini" id="menu-close" type="button">Close</button></div>
+    <div class="menu-list">
+      <button class="menu-item" id="m-export" type="button">Export results (.json)</button>
+      <button class="menu-item" id="m-csv" type="button">Export picks (.csv)</button>
+      <button class="menu-item danger" id="m-reset" type="button">Reset draft…</button>
+    </div>
+    <p class="modal-note">Everything is saved in this browser automatically — a
+      refresh or crash won't lose the draft.</p>
+  </div>
+</div>
+
+<script src="js/keeperdata.js?v=DEV"></script>
+<script src="js/engine.js?v=DEV"></script>
+<script src="js/store.js?v=DEV"></script>
+<script src="js/app.js?v=DEV"></script>
+</body>
+</html>
