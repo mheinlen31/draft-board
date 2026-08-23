@@ -18,14 +18,21 @@
 
   $('season').textContent = state().season;
 
-  /* ---------- searchable player universe: everyone rostered + free pool ---------- */
-  const universe = [];
-  (K.teams || []).forEach((t) => t.players.forEach((p) =>
-    universe.push({ name: p.name, pos: p.pos, nfl: p.nfl, img: p.img, from: t.name })));
-  (K.pool || []).forEach((p) =>
-    universe.push({ name: p.name, pos: p.pos, nfl: p.nfl, img: p.img, from: null }));
+  /* ---------- searchable player universe ----------
+     ESPN's full draftable list (js/players.js, ~1,000 incl. every K and D/ST)
+     plus anyone on a keeper roster, so nothing is missing at the table. The
+     keeper site's own pool is value-filtered and too thin for a live draft. */
   const uniq = new Map();
-  universe.forEach((p) => { if (!uniq.has(norm(p.name))) uniq.set(norm(p.name), p); });
+  const add = (p) => {
+    const k = norm(p.name);
+    if (k && !uniq.has(k)) uniq.set(k, p);
+  };
+  ((window.DRAFT_PLAYERS || {}).players || []).forEach((p) =>
+    add({ name: p.name, pos: p.pos, nfl: p.nfl, img: p.img, aav: p.aav }));
+  (K.teams || []).forEach((t) => t.players.forEach((p) =>
+    add({ name: p.name, pos: p.pos, nfl: p.nfl, img: p.img, aav: p.market })));
+  (K.pool || []).forEach((p) =>
+    add({ name: p.name, pos: p.pos, nfl: p.nfl, img: p.img, aav: p.market }));
   const POOL = [...uniq.values()];
 
   const takenNames = () => new Set(state().teams.flatMap((t) =>
@@ -46,7 +53,8 @@
     taList.innerHTML = taHits.map((p, i) => `
       <div class="ta-item${i === taIdx ? ' on' : ''}" data-i="${i}">
         <span class="ta-name">${esc(p.name)}</span>
-        <span class="ta-meta">${esc(p.pos || '')}${p.nfl ? ' · ' + esc(p.nfl) : ''}</span>
+        <span class="ta-meta">${esc(p.pos || '')}${p.nfl ? ' · ' + esc(p.nfl) : ''}${
+          p.aav >= 1 ? ` · <b>$${Math.round(p.aav)}</b> espn` : ''}</span>
       </div>`).join('');
     taList.hidden = false;
   }
@@ -55,7 +63,12 @@
     const q = norm(inp.value);
     if (q.length < 2) return closeTA();
     const taken = takenNames();
-    taHits = POOL.filter((p) => !taken.has(norm(p.name)) && norm(p.name).includes(q))
+    taHits = POOL
+      .filter((p) => !taken.has(norm(p.name)) && norm(p.name).includes(q))
+      // name-start matches first, then by ESPN value, so the guy actually being
+      // bid on tops the list instead of a same-named practice-squad body
+      .sort((a, b) => (norm(b.name).startsWith(q) - norm(a.name).startsWith(q))
+        || ((b.aav || 0) - (a.aav || 0)))
       .slice(0, 8);
     taIdx = taHits.length ? 0 : -1;
     renderTA();
