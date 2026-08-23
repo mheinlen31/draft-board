@@ -8,14 +8,14 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Saira+Condensed:wght@500;600;700;800&family=Saira:wght@500;600;700;800&display=swap">
-<link rel="stylesheet" href="css/draft.css?v=202608231322">
+<link rel="stylesheet" href="css/draft.css?v=202608231331">
 </head>
 <body>
 
 <!-- "on the clock" takeover while the room is bidding.
      Sits under the control bar (z-index) so the operator can keep typing. -->
 <div id="clock" class="clock" hidden>
-  <div class="clock-inner">
+  <div class="clock-stage">
     <div class="clock-eyebrow"><i class="dot"></i>On the Clock</div>
     <div class="clock-body">
       <img id="clock-img" class="clock-mug" src="" alt="">
@@ -29,6 +29,14 @@
       <span id="clock-bid" class="clock-bid-amt">—</span>
     </div>
   </div>
+  <!-- who can afford him: every team's money, sorted by max bid -->
+  <aside class="clock-money">
+    <div class="cm-head">
+      <span class="cm-title">Who Can Bid</span>
+      <span class="cm-sub">Left · Max</span>
+    </div>
+    <div id="clock-money-list" class="cm-list"></div>
+  </aside>
 </div>
 
 <!-- full-screen splash on each pick -->
@@ -103,10 +111,10 @@
   </div>
 </div>
 
-<script src="js/keeperdata.js?v=202608231322"></script>
-<script src="js/players.js?v=202608231322"></script>
-<script src="js/engine.js?v=202608231322"></script>
-<script src="js/store.js?v=202608231322"></script>
-<script src="js/app.js?v=202608231322"></script>
+<script src="js/keeperdata.js?v=202608231331"></script>
+<script src="js/players.js?v=202608231331"></script>
+<script src="js/engine.js?v=202608231331"></script>
+<script src="js/store.js?v=202608231331"></script>
+<script src="js/app.js?v=202608231331"></script>
 </body>
 </html>

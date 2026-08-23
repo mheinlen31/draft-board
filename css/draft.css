@@ -174,18 +174,22 @@ body {
   display: flex; align-items: center; gap: 7px; flex-wrap: wrap;
 }
 
-.nums { display: flex; gap: 12px; margin-top: 8px; align-items: flex-end; }
+.nums { display: flex; gap: 14px; margin-top: 9px; align-items: flex-end; flex-wrap: wrap; }
 .num { display: flex; flex-direction: column-reverse; line-height: 1; }
 .num b {
-  font-family: var(--display); font-weight: 700; font-size: 17px;
-  font-variant-numeric: tabular-nums; color: var(--ink);
+  font-family: var(--display); font-weight: 800; font-size: 26px;
+  font-variant-numeric: tabular-nums; color: var(--ink); letter-spacing: -.01em;
 }
 .num span {
-  font-size: 8px; font-weight: 700; letter-spacing: .14em;
-  text-transform: uppercase; color: var(--faint); margin-bottom: 3px;
+  font-size: 8.5px; font-weight: 700; letter-spacing: .14em;
+  text-transform: uppercase; color: var(--faint); margin-bottom: 4px;
 }
-.num.big b { font-size: 30px; font-weight: 800; color: var(--gold); letter-spacing: -.01em; }
+/* the two numbers that decide every bid get the most weight on the card */
+.num.big b { font-size: 46px; font-weight: 800; color: var(--gold); letter-spacing: -.02em; }
 .num.big.low b { color: var(--red); }
+.num.max b { font-size: 34px; color: var(--ink); }
+.num.minor b { font-size: 17px; font-weight: 700; color: var(--soft); }
+.num.minor span { color: var(--dim); }
 
 /* ------------------------------ roster slots ---------------------------- */
 .slots { padding: 3px 0 4px; }
@@ -430,15 +434,19 @@ body {
 .clock {
   position: fixed; inset: 0; z-index: 35;
   background:
-    radial-gradient(900px 520px at 50% 42%, rgba(18,29,54,.97), rgba(5,8,15,.99));
-  display: flex; align-items: center; justify-content: center;
-  padding: 90px 40px 40px;
+    radial-gradient(900px 520px at 34% 42%, rgba(18,29,54,.97), rgba(5,8,15,.99));
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) clamp(310px, 26vw, 430px);
+  gap: clamp(16px, 2.5vw, 40px);
+  padding: 78px clamp(16px, 2.5vw, 34px) clamp(16px, 2vw, 28px);
 }
 .clock[hidden] { display: none; }
-.clock-inner {
-  width: min(1250px, 94vw);
-  display: flex; flex-direction: column; align-items: center; gap: clamp(14px, 2.4vw, 30px);
-  text-align: center;
+.clock-stage {
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: clamp(12px, 2vw, 26px); text-align: center; min-width: 0;
+}
+@media (max-width: 900px) {
+  .clock { grid-template-columns: 1fr; grid-template-rows: auto minmax(0,1fr); }
 }
 .clock-eyebrow {
   display: inline-flex; align-items: center; gap: 11px;
@@ -493,4 +501,62 @@ body {
 
 @media (prefers-reduced-motion: reduce) {
   .clock-eyebrow .dot { animation: none; }
+}
+
+/* ---------------------- money rail on the clock takeover ----------------
+   The whole point of this screen during bidding: who's up, and who can
+   afford him. Sorted by max bid so the biggest threat is always on top. */
+.clock-money {
+  display: flex; flex-direction: column; min-height: 0;
+  background: linear-gradient(180deg, var(--panel2), var(--panel));
+  border: 1px solid var(--line); border-top: 3px solid var(--red);
+  border-radius: 4px; overflow: hidden;
+  box-shadow: 0 14px 44px rgba(0,0,0,.6);
+}
+.cm-head {
+  display: flex; align-items: baseline; justify-content: space-between;
+  padding: 10px 14px 9px; border-bottom: 1px solid var(--line);
+  background: rgba(255,255,255,.02);
+}
+.cm-title {
+  font-family: var(--display); font-size: clamp(17px, 1.5vw, 22px); font-weight: 800;
+  text-transform: uppercase; letter-spacing: .05em;
+}
+.cm-sub {
+  font-size: 9px; font-weight: 700; letter-spacing: .2em;
+  text-transform: uppercase; color: var(--faint);
+}
+.cm-list { flex: 1 1 auto; overflow-y: auto; scrollbar-width: none; }
+.cm-list::-webkit-scrollbar { display: none; }
+
+.cm-row {
+  display: grid; grid-template-columns: 4px minmax(0,1fr) auto auto;
+  align-items: center; gap: 0 11px;
+  padding: 0 13px 0 0; border-bottom: 1px solid rgba(36,48,74,.5);
+  min-height: clamp(40px, 5.4vh, 58px);
+}
+.cm-row:last-child { border-bottom: none; }
+.cm-bar { width: 4px; align-self: stretch; background: var(--tc); }
+.cm-team {
+  font-family: var(--display); font-size: clamp(16px, 1.5vw, 21px); font-weight: 700;
+  text-transform: uppercase; letter-spacing: .01em;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  padding-left: 11px;
+}
+.cm-left, .cm-max {
+  font-family: var(--display); font-variant-numeric: tabular-nums;
+  text-align: right; line-height: 1;
+}
+.cm-left { font-size: clamp(17px, 1.6vw, 23px); font-weight: 700; color: var(--soft); }
+.cm-max {
+  font-size: clamp(22px, 2.2vw, 32px); font-weight: 800; color: var(--gold);
+  min-width: 2.6em;
+}
+/* teams that can't beat the current bid recede; the live threats stay lit */
+.cm-row.out { opacity: .34; }
+.cm-row.out .cm-max { color: var(--dim); }
+.cm-row.full .cm-max { color: var(--dim); }
+.cm-tag {
+  font-family: var(--data); font-size: 8.5px; font-weight: 800;
+  letter-spacing: .12em; text-transform: uppercase; color: var(--faint);
 }

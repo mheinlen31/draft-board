@@ -103,8 +103,8 @@
     $('clock-img').onerror = function () { this.onerror = null; this.src = FALLBACK; };
     $('clock-name').textContent = p.name;
     $('clock-meta').textContent = [p.pos, p.nfl].filter(Boolean).join(' · ') || ' ';
-    syncBid();
     $('clock').hidden = false;
+    syncBid();          // paints the money rail too
   }
   function hideClock() { $('clock').hidden = true; }
   function syncBid() {
@@ -112,8 +112,28 @@
     const el = $('clock-bid');
     el.textContent = v >= 1 ? '$' + v : '—';
     el.classList.toggle('none', !(v >= 1));
+    renderMoney(v);           // grey out anyone who can't beat the live bid
   }
   $('f-cost').addEventListener('input', syncBid);
+
+  /* every team's money, richest max-bid first — the question the room is
+     actually asking while a player is up */
+  function renderMoney(bid) {
+    const rows = state().teams
+      .map((t) => ({ t, st: E.teamState(t) }))
+      .sort((a, b) => b.st.maxBid - a.st.maxBid || b.st.remaining - a.st.remaining);
+    $('clock-money-list').innerHTML = rows.map(({ t, st }) => {
+      const full = st.open <= 0;
+      const out = !full && bid >= 1 && st.maxBid <= bid;
+      return `<div class="cm-row${out ? ' out' : ''}${full ? ' full' : ''}"
+          style="--tc:${COLORS[t.ti % 10]}">
+        <span class="cm-bar"></span>
+        <span class="cm-team">${esc(t.name)}</span>
+        <span class="cm-left">$${st.remaining}</span>
+        <span class="cm-max">${full ? '<span class="cm-tag">full</span>' : '$' + st.maxBid}</span>
+      </div>`;
+    }).join('');
+  }
 
   /* ---------- submit a pick ---------- */
   $('pick-form').addEventListener('submit', (e) => {
@@ -194,9 +214,9 @@
         <h2>${esc(t.name)}${over ? ' <span class="warn">OVER BUDGET</span>' : ''}</h2>
         <div class="nums">
           <div class="num big${low || over ? ' low' : ''}"><b>$${st.remaining}</b><span>left</span></div>
-          <div class="num"><b>$${st.maxBid}</b><span>max bid</span></div>
-          <div class="num"><b>${st.open}</b><span>spots</span></div>
-          <div class="num"><b>$${st.avgPerOpen.toFixed(0)}</b><span>avg/spot</span></div>
+          <div class="num max"><b>$${st.maxBid}</b><span>max bid</span></div>
+          <div class="num minor"><b>${st.open}</b><span>spots</span></div>
+          <div class="num minor"><b>$${st.avgPerOpen.toFixed(0)}</b><span>avg/spot</span></div>
         </div>
       </header>
       <div class="slots">
