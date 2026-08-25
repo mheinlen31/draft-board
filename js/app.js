@@ -325,7 +325,15 @@
       </div>`;
     }).join('');
   }
-  $('btn-keepers').addEventListener('click', () => { renderKeepers(); kModal.hidden = false; });
+  $('btn-keepers').addEventListener('click', () => {
+    // keepers are a pre-draft step; warn before touching them mid-auction
+    if (state().picks.length &&
+        !confirm(`${state().picks.length} picks are already in.\n\n` +
+                 'Keepers are meant to be set before the draft. Drafted picks are ' +
+                 'safe either way — open anyway?')) return;
+    renderKeepers();
+    kModal.hidden = false;
+  });
   $('keeper-close').addEventListener('click', () => { kModal.hidden = true; });
   $('keeper-body').addEventListener('click', (e) => {
     const c = e.target.closest('.kchip');

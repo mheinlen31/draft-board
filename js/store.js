@@ -47,6 +47,18 @@ window.DraftStore = (function () {
     if (undo.length > 100) undo.shift();
   }
 
+  /* Keep multiple tabs in step. Mirroring the board to a TV while also having
+     it open on the operator's laptop is the likely setup — without this the two
+     tabs hold separate in-memory state and the last one to write silently wipes
+     the other's picks. */
+  window.addEventListener('storage', function (e) {
+    if (e.key !== KEY || !e.newValue) return;
+    try {
+      state = JSON.parse(e.newValue);
+      listeners.forEach(function (fn) { fn(state); });
+    } catch (err) { /* ignore a malformed write */ }
+  });
+
   return {
     init() { load(); return state; },
     get() { return state; },
@@ -54,12 +66,17 @@ window.DraftStore = (function () {
     team(ti) { return state.teams.find((t) => t.ti === ti); },
 
     /* lock in which players each team actually kept (pre-draft step) */
+    /* Replace only the KEEPER portion of a roster. Drafted picks are preserved —
+       an accidental tap on a keeper chip mid-draft must never erase real picks
+       (that used to silently desync the roster from the pick list). */
     setKeepers(ti, names) {
       snapshot();
       const t = this.team(ti);
-      t.players = t.keeperPool
+      const drafted = t.players.filter((p) => !p.keeper);
+      const keepers = t.keeperPool
         .filter((p) => names.includes(p.name))
         .map((p) => ({ ...p }));
+      t.players = keepers.concat(drafted);
       save();
     },
     startDraft() { snapshot(); state.started = true; save(); },

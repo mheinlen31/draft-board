@@ -62,6 +62,11 @@ on screen, so nothing tips the room off about who needs to bid on what.
   spots left and no kicker or defense yet
 - Everything saves to the browser automatically — a refresh or crash mid-draft
   loses nothing
+- Keepers can't be clobbered: adjusting them never removes drafted picks, and
+  the modal warns if the draft is already underway
+- Two tabs on the same machine (e.g. mirrored to a TV) stay in sync rather than
+  overwriting each other. A **second device** keeps its own separate draft —
+  run the whole night from one machine
 
 ## Before draft night
 
