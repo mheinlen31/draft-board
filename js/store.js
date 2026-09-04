@@ -2,8 +2,11 @@
    accidental refresh mid-draft loses nothing. Undo history for misentries. */
 window.DraftStore = (function () {
   const KEY = 'sf-draft-2026';
+  // identifies this browser tab so it can ignore the echo of its own writes
+  const CLIENT = Math.random().toString(36).slice(2, 10);
   let state = null;
   const listeners = [];
+  const syncers = [];
   const undo = [];
 
   function rankFor(name) {
@@ -12,6 +15,31 @@ window.DraftStore = (function () {
     const hit = ref.find((x) => String(x.name).toLowerCase()
       .replace(/[^a-z ]/g, '').replace(/\s+/g, ' ').trim() === key);
     return hit ? hit.rank : 9999;
+  }
+
+  /* Firebase drops empty arrays and objects entirely, and turns a
+     non-contiguous array into an object keyed by index. So a state that has
+     round-tripped through the network comes back subtly mis-shaped: a team
+     that hasn't drafted anyone yet has NO `players` key at all, and the first
+     pick for that team throws on undefined.push. Normalise every state that
+     arrives from outside this tab before it is allowed near the UI. */
+  function asArray(v) {
+    if (Array.isArray(v)) return v;
+    if (v && typeof v === 'object') {
+      return Object.keys(v).sort((a, b) => a - b).map((k) => v[k]);
+    }
+    return [];
+  }
+
+  function normalize(st) {
+    if (!st || typeof st !== 'object') return null;
+    st.teams = asArray(st.teams);
+    st.teams.forEach((t) => {
+      t.players = asArray(t.players);
+      t.keeperPool = asArray(t.keeperPool);
+    });
+    st.picks = asArray(st.picks);
+    return st;
   }
 
   function seed() {
@@ -32,12 +60,22 @@ window.DraftStore = (function () {
   function load() {
     try {
       const raw = localStorage.getItem(KEY);
-      if (raw) { state = JSON.parse(raw); return; }
+      if (raw) { state = normalize(JSON.parse(raw)) || seed(); return; }
     } catch (e) { /* fall through to fresh */ }
     state = seed();
   }
 
   function save() {
+    // rev is what lets other machines tell a newer draft from an older one
+    state.rev = (state.rev || 0) + 1;
+    state.by = CLIENT;
+    write();
+    syncers.forEach((fn) => fn(state));
+  }
+
+  /* Persist + repaint without touching rev — used when adopting a state that
+     came FROM somewhere else, so we don't bounce it straight back out. */
+  function write() {
     try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) { /* quota */ }
     listeners.forEach((fn) => fn(state));
   }
@@ -57,6 +95,7 @@ window.DraftStore = (function () {
       state = JSON.parse(e.newValue);
       listeners.forEach(function (fn) { fn(state); });
     } catch (err) { /* ignore a malformed write */ }
+    // no publish here: the tab that made the change has already sent it
   });
 
   return {
@@ -109,13 +148,24 @@ window.DraftStore = (function () {
       if (!undo.length) return false;
       const prev = JSON.parse(undo.pop());
       state.teams = prev.teams; state.picks = prev.picks;
-      try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) {}
-      listeners.forEach((fn) => fn(state));
+      save();
       return true;
     },
     canUndo() { return undo.length > 0; },
 
     reset() { state = seed(); undo.length = 0; save(); },
+
+    /* --- live sync plumbing --- */
+    clientId() { return CLIENT; },
+    normalize(st) { return normalize(st); },
+    onPublish(fn) { syncers.push(fn); },
+    /* Take a state that arrived from another machine. Newer-wins: a stale or
+       self-authored snapshot is ignored by the caller before it gets here. */
+    adopt(remote) {
+      state = normalize(remote);
+      undo.length = 0;   // the undo stack belonged to the old timeline
+      write();
+    },
     exportJSON() { return JSON.stringify(state, null, 2); },
   };
 })();

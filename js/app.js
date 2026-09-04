@@ -392,6 +392,57 @@
     }
   });
 
+  /* ---- live sync across computers ----
+     The board stays fully usable if this never connects: every path below
+     degrades to the localStorage-only behaviour it had before. */
+  (function initSync() {
+    const pill = document.getElementById('sync-pill');
+    const setPill = (cls, text, title) => {
+      if (!pill) return;
+      pill.className = 'sync-pill ' + cls;
+      pill.textContent = text;
+      if (title) pill.title = title;
+    };
+    if (!window.DraftSync) { setPill('off', 'Local only'); return; }
+
+    let seeded = false;
+    // push every local change out
+    S.onPublish((st) => {
+      window.DraftSync.publish(st).then((ok) => {
+        if (ok) setPill('live', 'Live');
+      });
+    });
+
+    window.DraftSync.subscribe((remote) => {
+      const local = S.get();
+      if (!remote) {
+        // nothing up there yet — this machine seeds the room
+        if (!seeded) { seeded = true; window.DraftSync.publish(local); }
+        setPill('live', 'Live');
+        return;
+      }
+      seeded = true;
+      S.normalize(remote);   // Firebase strips empty arrays — re-shape first
+      if (remote.by === S.clientId()) return;              // our own echo
+      if ((remote.rev || 0) <= (local.rev || 0)) {
+        // we hold something newer (e.g. we drafted while offline) — push it
+        if ((local.rev || 0) > (remote.rev || 0)) window.DraftSync.publish(local);
+        return;
+      }
+      S.adopt(remote);                                     // newer wins
+      render();
+      setPill('live', 'Live', 'Updated from another device');
+    }).catch(() => {
+      setPill('off', 'Local only',
+        "Can't reach the live board — this computer still runs the draft normally");
+    });
+
+    window.DraftSync.onConnectionChange((up) => {
+      setPill(up ? 'live' : 'off', up ? 'Live' : 'Offline',
+        up ? 'Synced across devices' : 'Reconnecting — picks are saved locally');
+    }).catch(() => {});
+  })();
+
   render();
   inp.focus();
 })();
