@@ -63,7 +63,18 @@ window.DraftStore = (function () {
   function load() {
     try {
       const raw = localStorage.getItem(KEY);
-      if (raw) { state = normalize(JSON.parse(raw)) || seed(); return; }
+      if (raw) {
+        const saved = normalize(JSON.parse(raw));
+        const gen = ((window.LEAGUE_DATA || {}).generated) || '';
+        // A prep.sh sync moves team names, purses and rosters. Any saved state
+        // that predates the keeper data now loaded is obsolete -- keeping it
+        // would show last week's league and, worse, republish it over everyone
+        // else's fresh copy. Only discard when nothing has been drafted; once a
+        // pick exists the saved state always wins.
+        const obsolete = saved && !(saved.picks || []).length
+          && (saved.dataGen || '') < gen;
+        if (saved && !obsolete) { state = saved; return; }
+      }
     } catch (e) { /* fall through to fresh */ }
     state = seed();
   }
