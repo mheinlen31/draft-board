@@ -191,6 +191,35 @@
      air-horn, short enough not to wear out over 150 picks. */
   let audioCtx = null;
   const soundOn = () => localStorage.getItem('sf-draft-mute') !== '1';
+
+  /* iOS starts every AudioContext suspended and only lets it resume inside a
+     real user gesture. Prime it on the very first touch so the first SOLD of
+     the night isn't silently swallowed. */
+  function primeAudio() {
+    try {
+      audioCtx = audioCtx || new (window.AudioContext || window.webkitAudioContext)();
+      if (audioCtx.state === 'suspended') audioCtx.resume();
+    } catch (e) { /* no audio — the board is still fully usable */ }
+  }
+  ['touchend', 'mousedown', 'keydown'].forEach((ev) =>
+    window.addEventListener(ev, primeAudio, { once: true, passive: true }));
+
+  /* Stop the operator's tablet dimming and sleeping mid-draft, which on an
+     AirPlay mirror blacks out the TV too. Unsupported on older iPadOS, where
+     the fallback is Settings > Display > Auto-Lock > Never. */
+  (function keepAwake() {
+    let lock = null;
+    const acquire = async () => {
+      try {
+        if ('wakeLock' in navigator) lock = await navigator.wakeLock.request('screen');
+      } catch (e) { /* denied or unsupported */ }
+    };
+    acquire();
+    // the lock is dropped whenever the tab is backgrounded; take it again
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'visible' && (!lock || lock.released)) acquire();
+    });
+  })();
   function horn() {
     if (!soundOn()) return;
     try {

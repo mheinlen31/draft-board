@@ -42,12 +42,17 @@ body {
   display: flex; flex-direction: column;
   -webkit-font-smoothing: antialiased;
 }
-/* narrow screens (a laptop or phone checking in) go back to normal scrolling */
-@media (max-width: 1150px) {
+/* Only phones fall back to scrolling. A tablet is a likely OPERATOR screen --
+   an iPad mirrored to a TV -- and a board you have to scroll is useless on a
+   wall: you'd see three teams and miss the rest. Every iPad size (1024 and up
+   in landscape, 768+ in portrait) keeps the one-screen lock, with the roster
+   slots scrolling inside each card as they do on desktop. */
+@media (max-width: 767px) {
   body { height: auto; min-height: 100vh; overflow: visible; }
   .grid { grid-auto-rows: auto; align-content: start; }
   .slots { overflow: visible; }
 }
+
 :focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
 
 /* ============================ CONTROL CHYRON ============================= */
@@ -589,3 +594,15 @@ body {
 .sync-pill.live::before { content: '● '; }
 .sync-pill.off { color: #ffb35c; border-color: rgba(255,179,92,.45); background: rgba(255,179,92,.10); }
 .sync-pill.off::before { content: '○ '; }
+
+/* Tablet-width chrome. Kept at the end of the file deliberately: these share
+   specificity with the base .fld-* rules above, so source order is what makes
+   them win. Without this the fixed-width team and cost fields squeeze the
+   player input down to a couple of dozen pixels on a 1024px iPad. */
+@media (max-width: 1150px) {
+  .bar { gap: 10px; padding: 8px 12px; }
+  .bar-title { font-size: 22px; }
+  .fld-team { flex: 0 0 130px; }
+  .fld-cost { flex: 0 0 76px; font-size: 19px; }
+  .dstat { display: none; }
+}
