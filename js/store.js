@@ -54,7 +54,10 @@ window.DraftStore = (function () {
         rank: rankFor(p.name), aav: p.market || 0,
       })),
     }));
-    return { season: K.season || 2026, teams, picks: [], started: false };
+    // stamp the keeper data this seed was built from, so a state seeded
+    // from older data can be told apart from a newer one
+    return { season: K.season || 2026, teams, picks: [], started: false,
+             dataGen: K.generated || '' };
   }
 
   function load() {

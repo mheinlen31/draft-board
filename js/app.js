@@ -453,6 +453,19 @@
       seeded = true;
       S.normalize(remote);   // Firebase strips empty arrays — re-shape first
       if (remote.by === S.clientId()) return;              // our own echo
+
+      // A prep.sh sync changes team names, purses and rosters. If the room
+      // still holds a state seeded from OLDER keeper data and nobody has
+      // drafted yet, that stale seed must not win on rev alone — otherwise
+      // every board silently reverts to last week's names and budgets. Once
+      // any pick exists we never discard it, whichever side it is on.
+      const fresh = (x) => (x && x.dataGen) || '';
+      if (!(remote.picks || []).length && !(local.picks || []).length
+          && fresh(remote) < fresh(local)) {
+        window.DraftSync.publish(local);
+        setPill('live', 'Live', 'Reseeded from the latest keeper data');
+        return;
+      }
       if ((remote.rev || 0) <= (local.rev || 0)) {
         // we hold something newer (e.g. we drafted while offline) — push it
         if ((local.rev || 0) > (remote.rev || 0)) window.DraftSync.publish(local);
