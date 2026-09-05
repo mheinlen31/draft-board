@@ -12,7 +12,6 @@
     ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
   const norm = (s) => String(s).toLowerCase().replace(/[^a-z ]/g, '').replace(/\s+/g, ' ').trim();
   const $ = (id) => document.getElementById(id);
-  const LOGO = (n, px) => (window.TEAM_LOGOS ? window.TEAM_LOGOS.html(n, px) : '');
   const FALLBACK = 'https://a.espncdn.com/combiner/i?img=/i/headshots/nophoto.png&w=120&h=88';
   const COLORS = ['#1a7a55', '#b3312b', '#2b74c4', '#c9a227', '#7a52ba',
     '#159aae', '#d9702a', '#4f8c2a', '#a34070', '#5a6474'];
@@ -137,7 +136,7 @@
       return `<div class="cm-row${out ? ' out' : ''}${full || blocked ? ' full' : ''}"
           style="--tc:${COLORS[t.ti % 10]}">
         <span class="cm-bar"></span>
-        <span class="cm-team">${LOGO(t.name, 16)}${esc(t.name)}</span>
+        <span class="cm-team">${esc(t.name)}</span>
         <span class="cm-left">$${st.remaining}</span>
         <span class="cm-max">${full ? '<span class="cm-tag">full</span>'
           : blocked ? '<span class="cm-tag">n/a</span>' : '$' + st.maxBid}</span>
@@ -251,7 +250,7 @@
     const box = $('splash');
     $('splash-img').src = pick.img || FALLBACK;
     $('splash-img').onerror = function () { this.onerror = null; this.src = FALLBACK; };
-    $('splash-team').innerHTML = LOGO(team.name, 22) + esc(team.name);
+    $('splash-team').textContent = team.name;
     $('splash-name').textContent = pick.name;
     $('splash-meta').textContent = [pick.pos, pick.nfl].filter(Boolean).join(' · ');
     $('splash-cost').textContent = '$' + pick.cost;
@@ -291,7 +290,7 @@
     const low = !over && st.remaining <= 5;
     return `<section class="team${over ? ' over' : ''}${t.ti === wonTi ? ' won' : ''}" data-ti="${t.ti}" style="--tc:${COLORS[t.ti % 10]}">
       <header class="team-top">
-        <h2>${LOGO(t.name, 22)}${esc(t.name)}${over ? ' <span class="warn">OVER</span>' : ''}</h2>
+        <h2>${esc(t.name)}${over ? ' <span class="warn">OVER</span>' : ''}</h2>
         <div class="money">
           <div class="m m-left${low || over ? ' low' : ''}"><b>$${st.remaining}</b><span>left</span></div>
           <div class="m m-max"><b>$${st.maxBid}</b><span>max bid</span></div>
@@ -351,7 +350,7 @@
     // misentry can still be clicked away
     const items = picks.slice(-14).reverse().map((p) => `
       <span class="tick" data-n="${p.n}" title="Click to remove (misentry)">
-        ${LOGO(p.team, 16) || `<i style="background:${COLORS[p.ti % 10]}"></i>`}
+        <i style="background:${COLORS[p.ti % 10]}"></i>
         ${esc(p.name)} <b>$${p.cost}</b> <em>${esc(p.team)}</em></span>`).join('');
     if (!picks.length) {
       $('ticker').innerHTML = '<span class="tick muted">No picks yet — type a player, team, and price above.</span>';
@@ -396,7 +395,7 @@
       const st = E.teamState(t);
       return `<div class="kteam" style="--tc:${COLORS[t.ti % 10]}">
         <div class="kteam-head">
-          <b>${LOGO(t.name, 18)}${esc(t.name)}</b>
+          <b>${esc(t.name)}</b>
           <span>purse $${t.purse} · keepers $${st.keeperSpend}${st.tax
             ? ` · <b class="ktax">over cap, tax $${st.tax}</b>` : ''} · left $${st.remaining}</span>
         </div>

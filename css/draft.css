@@ -738,11 +738,3 @@ body { background-size: 160% 100%, auto; }
   .splash-inner::before { opacity: .95; }
   .pfill { transition: none; }
 }
-
-/* team logos */
-.tlogo { display: inline-block; vertical-align: -.2em; margin-right: .35em; flex: 0 0 auto; }
-.team-top h2 .tlogo { vertical-align: -.16em; margin-right: 7px; filter: drop-shadow(0 1px 3px rgba(0,0,0,.5)); }
-.cm-team .tlogo { vertical-align: -.25em; margin-right: 6px; }
-.splash-team .tlogo { vertical-align: -.45em; margin-right: 8px; }
-.tick .tlogo { margin-right: 2px; }
-.kteam-head b .tlogo { vertical-align: -.25em; }
