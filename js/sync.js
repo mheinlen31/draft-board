@@ -50,9 +50,19 @@ window.DraftSync = (function () {
     subscribe(cb) {
       return connect().then(() => mod.onValue(stateRef, (s) => cb(s.val())));
     },
+    /* Never write an older revision over a newer one. A device that comes up
+       with a blind seed (fresh browser, cleared storage, operator code still
+       remembered) must not be able to wipe a room that already holds the
+       draft -- it happened once, in testing. The room's copy wins and reaches
+       this device through subscribe(). */
+    revGuard(cur, state) {
+      if (cur && (+cur.rev || 0) > (+state.rev || 0)) return undefined;   // abort
+      return state;
+    },
     publish(state) {
       if (!online) return Promise.resolve(false);
-      return mod.set(stateRef, state).then(() => true).catch(() => false);
+      return mod.runTransaction(stateRef, (cur) => this.revGuard(cur, state))
+        .then((r) => !!(r && r.committed)).catch(() => false);
     },
     /* The nomination is not draft state -- it lives in its own node so the
        War Room sees who's up and the bid as it climbs, without touching the

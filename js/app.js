@@ -640,15 +640,20 @@
       });
     });
 
+    // the newest revision this device has SEEN in the room; null until the
+    // first snapshot. Nothing is pushed on a bare connection before then.
+    let remoteRev = null;
     window.DraftSync.subscribe((remote) => {
       const local = S.get();
       if (!remote) {
         // nothing up there yet — this machine seeds the room
+        remoteRev = 0;
         if (!seeded) { seeded = true; if (isOperator()) window.DraftSync.publish(local); }
         setPill('live', 'Live');
         return;
       }
       seeded = true;
+      remoteRev = Math.max(remoteRev || 0, +remote.rev || 0);
       S.normalize(remote);   // Firebase strips empty arrays — re-shape first
       if (remote.by === S.clientId()) return;              // our own echo
 
@@ -660,7 +665,7 @@
       const fresh = (x) => (x && x.dataGen) || '';
       if (!(remote.picks || []).length && !(local.picks || []).length
           && fresh(remote) < fresh(local)) {
-        if (isOperator()) window.DraftSync.publish(local);
+        if (isOperator()) { S.bumpRevPast(remote.rev); window.DraftSync.publish(S.get()); }
         setPill('live', 'Live', 'Reseeded from the latest keeper data');
         return;
       }
@@ -680,9 +685,11 @@
     window.DraftSync.onConnectionChange((up) => {
       setPill(up ? 'live' : 'off', up ? 'Live' : 'Offline',
         up ? 'Synced across devices' : 'Reconnecting — picks are saved locally');
-      // back online: push whatever was saved while the room was unreachable
+      // back online: push whatever was saved while the room was unreachable --
+      // but only once this device has reconciled with the room and holds
+      // something newer. A bare connection with a blind seed pushes nothing.
       if (up && isOperator()) {
-        window.DraftSync.publish(S.get());
+        if (remoteRev !== null && (S.get().rev || 0) > remoteRev) window.DraftSync.publish(S.get());
         if (clockPlayer) publishClock(true);
       }
     }).catch(() => {});

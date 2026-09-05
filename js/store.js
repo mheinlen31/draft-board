@@ -169,6 +169,10 @@ window.DraftStore = (function () {
     },
     canUndo() { return undo.length > 0; },
 
+    /* A reseed from newer keeper data must outrank the room's copy or the
+       revision guard on publish will (rightly) refuse it. */
+    bumpRevPast(n) { state.rev = Math.max(state.rev || 0, (+n || 0) + 1); state.by = CLIENT; write(); },
+
     /* Nomination order: set once the room sits down (clockwise from whoever
        goes first). Who's up is derived from the pick count, so undo walks it
        back on its own; a skip or a back is a manual offset. */
