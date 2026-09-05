@@ -752,3 +752,39 @@ body { background-size: 160% 100%, auto; }
 /* watch-only: the controls are there but inert and clearly so */
 body.watch .pick-form, body.watch .bar-right .mini { opacity: .38; pointer-events: none; }
 body.watch .fld, body.watch .go { cursor: not-allowed; }
+
+/* =============================== FINALE ================================= */
+.finale {
+  position: fixed; inset: 0; z-index: 110; cursor: pointer;
+  background: radial-gradient(1000px 700px at 50% 40%, rgba(12,20,38,.96), rgba(4,7,13,.98));
+  display: flex; align-items: center; justify-content: center; padding: 24px;
+  backdrop-filter: blur(4px);
+}
+.finale[hidden] { display: none; }
+.finale-inner {
+  width: min(1240px, 96vw); max-height: 92vh; overflow: auto;
+  background: linear-gradient(180deg, #16203a, #0f1626);
+  border: 1px solid var(--line2); border-top: 6px solid var(--red); border-radius: 6px;
+  padding: clamp(18px, 3vw, 36px) clamp(18px, 3vw, 40px);
+  box-shadow: 0 40px 120px rgba(0,0,0,.85);
+  animation: slam .55s cubic-bezier(.16,1.1,.3,1) both;
+}
+.finale-eyebrow { font-family: var(--data); font-size: 12px; font-weight: 800; letter-spacing: .3em; text-transform: uppercase; color: var(--red); }
+.finale-title {
+  font-family: var(--display); font-weight: 800; font-size: clamp(54px, 9vw, 120px);
+  line-height: .9; text-transform: uppercase; letter-spacing: -.01em; color: #fff;
+  text-shadow: 0 6px 30px rgba(0,0,0,.6); margin: 6px 0 18px;
+}
+.finale-stats { display: flex; gap: clamp(18px, 3vw, 44px); flex-wrap: wrap; margin-bottom: 22px; }
+.fs { display: flex; flex-direction: column-reverse; line-height: 1; }
+.fs b { font-family: var(--display); font-weight: 800; font-size: clamp(34px, 5vw, 60px); color: var(--gold); }
+.fs span { font-size: 10px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: var(--faint); margin-bottom: 6px; }
+.finale-teams { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 10px; }
+@media (max-width: 900px) { .finale-teams { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.ft { background: var(--panel); border: 1px solid var(--line); border-left: 4px solid var(--tc); border-radius: 3px; padding: 10px 12px; }
+.ft-name { font-family: var(--display); font-weight: 800; font-size: 16px; text-transform: uppercase; letter-spacing: .03em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ft-num { font-family: var(--display); font-weight: 800; font-size: 30px; color: var(--gold); line-height: 1; margin: 6px 0 4px; }
+.ft-num small { font-family: var(--data); font-size: 9px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: var(--faint); margin-left: 6px; }
+.ft-sub { font-size: 11px; color: var(--soft); }
+.finale-foot { margin-top: 18px; font-size: 11px; letter-spacing: .1em; text-transform: uppercase; color: var(--faint); text-align: center; }
+@media (prefers-reduced-motion: reduce) { .finale-inner { animation: none; } }

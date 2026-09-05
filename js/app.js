@@ -419,8 +419,44 @@
       $('ticker').innerHTML = `<div class="crawl"><div class="crawl-track" style="animation-duration:${secs}s">${items}${items}</div></div>`;
     }
     $('btn-undo').disabled = !S.canUndo();
+    renderFinale(picks, teams, openNow, spent);
   }
   S.onChange(render);
+
+  /* ---------- the end ----------
+     Every spot filled: the board takes over with the night's numbers. Shown
+     whenever the state is complete (so a screen that arrives late sees it),
+     dismissable with a tap; the crawl label stays flipped. */
+  let finaleDismissed = false;
+  function renderFinale(picks, teams, openNow, spent) {
+    const done = picks.length > 0 && openNow === 0;
+    const label = document.querySelector('.ticker-label');
+    if (label) label.textContent = done ? 'Draft complete' : 'Last picks';
+    const box = $('finale');
+    if (!done) { box.hidden = true; finaleDismissed = false; return; }
+    if (finaleDismissed) return;
+    const priciest = picks.slice().sort((a, b) => b.cost - a.cost)[0];
+    const avg = spent / picks.length;
+    $('finale-season').textContent = state().season + ' auction';
+    $('finale-stats').innerHTML = `
+      <div class="fs"><b>${picks.length}</b><span>players sold</span></div>
+      <div class="fs"><b>$${spent}</b><span>spent at auction</span></div>
+      <div class="fs"><b>$${avg.toFixed(1)}</b><span>average</span></div>
+      <div class="fs"><b>$${priciest.cost}</b><span>${esc(priciest.name)} · ${esc(priciest.team)}</span></div>`;
+    const rows = teams.map((t) => ({ t, st: E.teamState(t) }))
+      .sort((a, b) => (b.st.spent - a.st.spent));
+    $('finale-teams').innerHTML = rows.map(({ t, st }) => {
+      const drafted = t.players.filter((p) => !p.keeper);
+      const top = drafted.slice().sort((a, b) => b.cost - a.cost)[0];
+      return `<div class="ft" style="--tc:${COLORS[t.ti % 10]}">
+        <div class="ft-name">${esc(t.name)}</div>
+        <div class="ft-num">$${drafted.reduce((s, p) => s + p.cost, 0)}<small>at auction</small></div>
+        <div class="ft-sub">${drafted.length} picks${top ? ` · top: ${esc(top.name)} $${top.cost}` : ''}${st.remaining > 0 ? ` · $${st.remaining} unspent` : ''}</div>
+      </div>`;
+    }).join('');
+    box.hidden = false;
+  }
+  $('finale').addEventListener('click', () => { finaleDismissed = true; $('finale').hidden = true; });
 
   $('ticker').addEventListener('click', (e) => {
     const t = e.target.closest('.tick');
