@@ -738,3 +738,17 @@ body { background-size: 160% 100%, auto; }
   .splash-inner::before { opacity: .95; }
   .pfill { transition: none; }
 }
+
+/* ---- operator lock ---- */
+.op-pill {
+  display: inline-block; margin-left: 6px; padding: 3px 9px; cursor: pointer;
+  border-radius: 999px; font: 700 10px/1.4 'Saira', system-ui, sans-serif;
+  letter-spacing: .1em; text-transform: uppercase; vertical-align: middle;
+  border: 1px solid rgba(255,179,92,.5); color: #ffb35c; background: rgba(255,179,92,.1);
+}
+.op-pill::before { content: '🔒 '; font-size: 9px; }
+.op-pill.op { color: #cfd6e4; border-color: rgba(255,255,255,.18); background: transparent; }
+.op-pill.op::before { content: '🔓 '; }
+/* watch-only: the controls are there but inert and clearly so */
+body.watch .pick-form, body.watch .bar-right .mini { opacity: .38; pointer-events: none; }
+body.watch .fld, body.watch .go { cursor: not-allowed; }

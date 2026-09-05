@@ -12,6 +12,39 @@
     ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
   const norm = (s) => String(s).toLowerCase().replace(/[^a-z ]/g, '').replace(/\s+/g, ' ').trim();
   const $ = (id) => document.getElementById(id);
+
+  /* ---------- operator lock ----------
+     The shared room is open to anyone with the URL, so the board is
+     WATCH-ONLY until a device enters the operator code. Spectators see the
+     live draft (they still adopt the room) but can't enter picks, undo,
+     touch keepers, reset -- and, the part that matters, never publish.
+     Unlock once per device; it's remembered. Change the code here. */
+  const OPERATOR_CODE = 'commish';
+  const OP_KEY = 'sf-draft-operator';
+  const isOperator = () => localStorage.getItem(OP_KEY) === OPERATOR_CODE;
+  function applyLock() {
+    const op = isOperator();
+    document.body.classList.toggle('watch', !op);
+    const pill = $('op-pill');
+    if (pill) { pill.textContent = op ? 'operator' : 'watching'; pill.classList.toggle('op', op);
+      pill.title = op ? 'This device runs the draft. Click to lock it.' : 'Watch-only. Click to enter the operator code.'; }
+    ['f-player', 'f-team', 'f-cost', 'btn-undo', 'btn-keepers', 'btn-menu'].forEach((id) => { const el = $(id); if (el) el.disabled = !op; });
+    const go = document.querySelector('.go'); if (go) go.disabled = !op;
+  }
+  $('op-pill').addEventListener('click', () => {
+    if (isOperator()) {
+      if (confirm('Lock this device? It will become watch-only until the code is entered again.')) {
+        localStorage.removeItem(OP_KEY); applyLock();
+      }
+      return;
+    }
+    const code = prompt('Operator code:');
+    if (code == null) return;
+    if (code.trim() === OPERATOR_CODE) { localStorage.setItem(OP_KEY, OPERATOR_CODE); applyLock(); flash('Operator mode on — this device runs the draft'); }
+    else flash('Wrong code');
+  });
+  // ?op=CODE in the URL unlocks too (handy for the iPad)
+  try { const q = new URLSearchParams(location.search).get('op'); if (q && q === OPERATOR_CODE) localStorage.setItem(OP_KEY, OPERATOR_CODE); } catch (e) {}
   const FALLBACK = 'https://a.espncdn.com/combiner/i?img=/i/headshots/nophoto.png&w=120&h=88';
   const COLORS = ['#1a7a55', '#b3312b', '#2b74c4', '#c9a227', '#7a52ba',
     '#159aae', '#d9702a', '#4f8c2a', '#a34070', '#5a6474'];
@@ -104,7 +137,7 @@
      dropped. Best-effort: a failed write changes nothing on this screen. */
   let clockPlayer = null, clockTimer = null;
   function publishClock(immediate) {
-    if (!window.DraftSync) return;
+    if (!window.DraftSync || !isOperator()) return;
     clearTimeout(clockTimer);
     const send = () => {
       if (!clockPlayer) { window.DraftSync.publishClock(null); return; }
@@ -171,6 +204,7 @@
   /* ---------- submit a pick ---------- */
   $('pick-form').addEventListener('submit', (e) => {
     e.preventDefault();
+    if (!isOperator()) return flash('Watch-only — enter the operator code to run the draft');
     const cost = parseInt($('f-cost').value, 10);
     const ti = +teamSel.value;
     let p = picked;
@@ -399,6 +433,7 @@
      is reachable three ways: the button, Ctrl/Cmd+Z anywhere, and clicking a
      pick in the crawl. Every path says out loud what it just reversed. */
   function doUndo() {
+    if (!isOperator()) return flash('Watch-only — enter the operator code to run the draft');
     const last = state().picks[state().picks.length - 1];
     if (!S.undo()) return flash('Nothing to undo');
     flash(last ? `Undid ${last.name} · $${last.cost}` : 'Undid last change');
@@ -513,6 +548,7 @@
     let seeded = false;
     // push every local change out
     S.onPublish((st) => {
+      if (!isOperator()) return;                 // a watching device never writes
       window.DraftSync.publish(st).then((ok) => {
         if (ok) setPill('live', 'Live');
       });
@@ -522,7 +558,7 @@
       const local = S.get();
       if (!remote) {
         // nothing up there yet — this machine seeds the room
-        if (!seeded) { seeded = true; window.DraftSync.publish(local); }
+        if (!seeded) { seeded = true; if (isOperator()) window.DraftSync.publish(local); }
         setPill('live', 'Live');
         return;
       }
@@ -538,13 +574,13 @@
       const fresh = (x) => (x && x.dataGen) || '';
       if (!(remote.picks || []).length && !(local.picks || []).length
           && fresh(remote) < fresh(local)) {
-        window.DraftSync.publish(local);
+        if (isOperator()) window.DraftSync.publish(local);
         setPill('live', 'Live', 'Reseeded from the latest keeper data');
         return;
       }
       if ((remote.rev || 0) <= (local.rev || 0)) {
         // we hold something newer (e.g. we drafted while offline) — push it
-        if ((local.rev || 0) > (remote.rev || 0)) window.DraftSync.publish(local);
+        if ((local.rev || 0) > (remote.rev || 0) && isOperator()) window.DraftSync.publish(local);
         return;
       }
       S.adopt(remote);                                     // newer wins
@@ -562,5 +598,6 @@
   })();
 
   render();
+  applyLock();
   inp.focus();
 })();
