@@ -89,7 +89,10 @@ body {
   box-shadow: 0 0 0 3px rgba(255,201,74,.14);
 }
 .fld-player { width: 100%; }
-.typeahead { position: relative; flex: 1 1 300px; display: flex; }
+.typeahead { position: relative; flex: 1 1 300px; min-width: 250px; display: flex; }
+/* the readout gives way before the player field does */
+.dstat { flex: 0 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+.ta-item { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .fld-team { flex: 0 0 180px; font-weight: 600; }
 .fld-cost {
   flex: 0 0 92px; text-align: center;

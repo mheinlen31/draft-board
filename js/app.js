@@ -342,7 +342,7 @@
     const totalSpots = picks.length + openNow;
     const inPlay = spent + teams.reduce((s, t) => s + Math.max(0, E.teamState(t).remaining), 0);
     $('draft-stats').innerHTML =
-      `<b>${picks.length}</b>/${totalSpots} picks · <b>$${spent}</b> of $${inPlay} · avg <b>$${avg}</b>`;
+      `<b>${picks.length}</b>/${totalSpots} · <b>$${spent}</b> of $${inPlay} · avg <b>$${Math.round(avg)}</b>`;
     $('pfill').style.width = (totalSpots ? (picks.length / totalSpots) * 100 : 0) + '%';
 
     // the crawl: newest first, duplicated so the loop is seamless; it only
