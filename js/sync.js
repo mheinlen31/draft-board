@@ -23,7 +23,7 @@ window.DraftSync = (function () {
   };
   const ROOM = "sunday-funday-draft-2026";
   const SDK = "https://www.gstatic.com/firebasejs/10.12.2";
-  let ready, mod, db, stateRef, online = false;
+  let ready, mod, db, stateRef, clockRef, online = false;
 
   function connect() {
     if (ready) return ready;
@@ -38,6 +38,7 @@ window.DraftSync = (function () {
       try { await _auth.signInAnonymously(_auth.getAuth(app)); } catch (e) { /* open rules */ }
       db = mod.getDatabase(app);
       stateRef = mod.ref(db, `trips/${ROOM}/state`);
+      clockRef = mod.ref(db, `trips/${ROOM}/clock`);   // who's up right now + the current bid
       online = true;
       return true;
     })();
@@ -52,6 +53,13 @@ window.DraftSync = (function () {
     publish(state) {
       if (!online) return Promise.resolve(false);
       return mod.set(stateRef, state).then(() => true).catch(() => false);
+    },
+    /* The nomination is not draft state -- it lives in its own node so the
+       War Room sees who's up and the bid as it climbs, without touching the
+       state's revision. null clears it (player sold, or nomination dropped). */
+    publishClock(clock) {
+      if (!online) return Promise.resolve(false);
+      return mod.set(clockRef, clock).then(() => true).catch(() => false);
     },
     /* live connection indicator, independent of whether a write succeeded */
     onConnectionChange(cb) {

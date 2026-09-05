@@ -66,6 +66,7 @@
     picked = null;
     const q = norm(inp.value);
     if (!q) hideClock();          // cleared the name -> drop the takeover
+    if (q.length >= 2) $('splash').hidden = true;   // typing the next name clears the last splash
     if (q.length < 2) return closeTA();
     const taken = takenNames();
     taHits = POOL
@@ -98,7 +99,26 @@
   }
 
   /* ---------- "on the clock" takeover while the room bids ---------- */
+  /* Tell the room who's up. Debounced so a bid typed digit by digit sends one
+     update, not five; cleared (null) when he's sold or the nomination is
+     dropped. Best-effort: a failed write changes nothing on this screen. */
+  let clockPlayer = null, clockTimer = null;
+  function publishClock(immediate) {
+    if (!window.DraftSync) return;
+    clearTimeout(clockTimer);
+    const send = () => {
+      if (!clockPlayer) { window.DraftSync.publishClock(null); return; }
+      const v = parseInt($('f-cost').value, 10);
+      window.DraftSync.publishClock({ name: clockPlayer.name, pos: clockPlayer.pos || null,
+        nfl: clockPlayer.nfl || null, img: clockPlayer.img || null,
+        bid: v >= 1 ? v : 0, ts: Date.now() });
+    };
+    if (immediate) send(); else clockTimer = setTimeout(send, 160);
+  }
+
   function showClock(p) {
+    clockPlayer = p;
+    publishClock(true);
     $('clock-img').src = p.img || FALLBACK;
     $('clock-img').onerror = function () { this.onerror = null; this.src = FALLBACK; };
     $('clock-name').textContent = p.name;
@@ -107,7 +127,10 @@
     $('clock').hidden = false;
     syncBid();          // paints the money rail too
   }
-  function hideClock() { $('clock').hidden = true; }
+  function hideClock() {
+    $('clock').hidden = true;
+    if (clockPlayer) { clockPlayer = null; publishClock(true); }
+  }
   let clockPos = null;      // position of the player currently up
   function syncBid() {
     const v = parseInt($('f-cost').value, 10);
@@ -115,6 +138,7 @@
     el.textContent = v >= 1 ? '$' + v : '—';
     el.classList.toggle('none', !(v >= 1));
     renderMoney(v, clockPos); // grey out who can't beat the bid; flag who needs him
+    if (clockPlayer) publishClock(false);   // the room sees the bid climb
   }
   $('f-cost').addEventListener('input', syncBid);
 
