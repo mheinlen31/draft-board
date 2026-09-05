@@ -151,98 +151,119 @@ body {
    roster list inside a card scrolls only if that card overflows. */
 .grid {
   flex: 1 1 auto; min-height: 0;
-  display: grid; gap: 9px; padding: 11px 12px;
-  grid-template-columns: repeat(5, 1fr);
-  grid-auto-rows: 1fr;
-  align-content: stretch;
+  display: grid; gap: 10px; padding: 10px 12px;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  grid-auto-rows: minmax(0, 1fr);
 }
-@media (max-width: 1500px) { .grid { grid-template-columns: repeat(4, 1fr); } }
-@media (max-width: 1150px) { .grid { grid-template-columns: repeat(3, 1fr); } }
-@media (max-width: 820px)  { .grid { grid-template-columns: repeat(2, 1fr); } }
-@media (max-width: 560px)  { .grid { grid-template-columns: 1fr; } }
+/* Five across all the way down to tablet width, so ten teams sit in two rows
+   and every one of the 150 roster spots is on screen at once. Narrower than
+   that we can't fit fifteen rows a card, so the roster list scrolls instead. */
+@media (max-width: 1150px) { .grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+@media (max-width: 820px)  { .grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 560px)  { .grid { grid-template-columns: minmax(0, 1fr); } }
 
+/* ------------------------------- team card ------------------------------- */
 .team {
-  position: relative; min-height: 0;
+  position: relative; min-height: 0; min-width: 0;
   display: flex; flex-direction: column;
-  background: linear-gradient(180deg, var(--panel2) 0%, var(--panel) 42%);
+  background: var(--panel);
   border: 1px solid var(--line);
-  border-radius: 4px; overflow: hidden;
-  box-shadow: 0 6px 18px rgba(0,0,0,.45);
+  border-left: 5px solid var(--tc);              /* the team's rail */
+  border-radius: 3px; overflow: hidden;
+  box-shadow: 0 8px 22px rgba(0,0,0,.45);
 }
-/* jersey stripe — the team's color running the full head */
-.team::before {
-  content: ''; position: absolute; inset: 0 0 auto 0; height: 4px;
-  background: var(--tc);
-}
-/* angled wedge behind the team name, broadcast-style */
 .team-top {
-  position: relative;
-  padding: 11px 11px 9px;
-  border-bottom: 1px solid var(--line);
+  position: relative; flex: 0 0 auto;
+  padding: 8px 10px 7px;
+  border-bottom: 1px solid var(--line2);
   background:
-    linear-gradient(100deg, color-mix(in srgb, var(--tc) 26%, transparent) 0%,
-                             color-mix(in srgb, var(--tc) 6%, transparent) 38%,
-                             transparent 62%);
+    linear-gradient(90deg, color-mix(in srgb, var(--tc) 22%, transparent) 0%,
+                            color-mix(in srgb, var(--tc) 5%, transparent) 55%,
+                            transparent 85%),
+    var(--panel2);
 }
 .team-top h2 {
-  font-family: var(--display); font-weight: 800; font-size: 24px;
-  text-transform: uppercase; letter-spacing: .015em; line-height: 1;
-  text-shadow: 0 2px 6px rgba(0,0,0,.5);
-  display: flex; align-items: center; gap: 7px; flex-wrap: wrap;
+  font-family: var(--display); font-weight: 800; font-size: 19px;
+  text-transform: uppercase; letter-spacing: .035em; line-height: 1;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  display: flex; align-items: center; gap: 6px;
+  text-shadow: 0 1px 4px rgba(0,0,0,.5);
 }
-
-.nums { display: flex; gap: 14px; margin-top: 9px; align-items: flex-end; flex-wrap: wrap; }
-.num { display: flex; flex-direction: column-reverse; line-height: 1; }
-.num b {
-  font-family: var(--display); font-weight: 800; font-size: 26px;
-  font-variant-numeric: tabular-nums; color: var(--ink); letter-spacing: -.01em;
+/* one money line: the two numbers that decide a bid, then the small stuff */
+.money { display: flex; align-items: flex-end; gap: 12px; margin-top: 5px; }
+.m { display: flex; flex-direction: column-reverse; line-height: 1; min-width: 0; }
+.m b {
+  font-family: var(--display); font-weight: 800;
+  font-variant-numeric: tabular-nums; letter-spacing: -.01em;
 }
-.num span {
+.m span {
   font-size: 8.5px; font-weight: 700; letter-spacing: .14em;
-  text-transform: uppercase; color: var(--faint); margin-bottom: 4px;
+  text-transform: uppercase; color: var(--faint); margin-bottom: 3px;
 }
-/* the two numbers that decide every bid get the most weight on the card */
-.num.big b { font-size: 46px; font-weight: 800; color: var(--gold); letter-spacing: -.02em; }
-.num.big.low b { color: var(--red); }
-.num.max b { font-size: 34px; color: var(--ink); }
-.num.minor b { font-size: 17px; font-weight: 700; color: var(--soft); }
-.num.minor span { color: var(--dim); }
+.m-left b { font-size: 34px; color: var(--gold); }
+.m-left.low b { color: var(--red); }
+.m-max b { font-size: 24px; color: var(--ink); }
+.m-mini { text-align: right; }
+.m-mini:nth-of-type(3) { margin-left: auto; }
+.m-mini b { font-size: 13px; font-weight: 700; color: var(--soft); }
+.m-mini span { color: var(--dim); }
 
 /* ------------------------------ roster slots ---------------------------- */
+/* Fifteen fixed rows that share whatever height the card has left — every
+   spot on screen, nothing to scroll, rows breathe on a tall screen and
+   tighten on a short one. */
 .slots {
-  padding: 3px 0 4px; flex: 1 1 auto; min-height: 0;
-  overflow-y: auto; scrollbar-width: none;
+  flex: 1 1 auto; min-height: 0;
+  display: grid; grid-template-rows: repeat(15, minmax(0, 1fr));
+  padding: 2px 0 3px;
 }
-.slots::-webkit-scrollbar { display: none; }
 .slot {
-  display: flex; align-items: center; gap: 7px;
-  padding: 3px 11px; font-size: 13px;
-  border-bottom: 1px solid rgba(36,48,74,.45);
+  display: flex; align-items: center; gap: 7px; min-height: 0;
+  padding: 0 9px 0 8px;
+  border-bottom: 1px solid rgba(36,48,74,.5);
 }
 .slot:last-child { border-bottom: none; }
-.slot .sl {
-  flex: 0 0 34px; font-size: 8.5px; font-weight: 800; letter-spacing: .1em;
-  color: var(--faint); text-transform: uppercase;
+/* a single stronger rule separates the starting nine from the bench */
+.slot.bench-first { border-top: 1px solid var(--line2); }
+
+/* position tag, tinted by the position actually in the slot */
+:root {
+  --p-qb: #f06a6a; --p-rb: #45d69a; --p-wr: #5aa4ff;
+  --p-te: #ffa14a; --p-k: #c39bff;  --p-dst: #9db1d1;
 }
+.slot .sl {
+  flex: 0 0 32px; font-family: var(--data); font-size: 8px; font-weight: 800;
+  letter-spacing: .1em; text-transform: uppercase; line-height: 1;
+  padding: 3px 0; text-align: center; border-radius: 2px;
+  color: var(--faint); background: rgba(255,255,255,.045);
+}
+.slot .sl.p-qb  { color: var(--p-qb);  background: color-mix(in srgb, var(--p-qb) 18%, transparent); }
+.slot .sl.p-rb  { color: var(--p-rb);  background: color-mix(in srgb, var(--p-rb) 18%, transparent); }
+.slot .sl.p-wr  { color: var(--p-wr);  background: color-mix(in srgb, var(--p-wr) 18%, transparent); }
+.slot .sl.p-te  { color: var(--p-te);  background: color-mix(in srgb, var(--p-te) 18%, transparent); }
+.slot .sl.p-k   { color: var(--p-k);   background: color-mix(in srgb, var(--p-k) 18%, transparent); }
+.slot .sl.p-dst { color: var(--p-dst); background: color-mix(in srgb, var(--p-dst) 18%, transparent); }
+
 .slot .sp {
   flex: 1 1 auto; min-width: 0;
-  font-family: var(--display); font-size: 15px; font-weight: 600;
-  text-transform: uppercase; letter-spacing: .01em;
+  font-family: var(--display); font-size: 13.5px; font-weight: 600;
+  text-transform: uppercase; letter-spacing: .012em; line-height: 1;
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
 .slot .sc {
-  flex: 0 0 auto; font-family: var(--display); font-weight: 700; font-size: 14px;
+  flex: 0 0 auto; font-family: var(--display); font-weight: 700; font-size: 12.5px;
   font-variant-numeric: tabular-nums; color: var(--gold);
 }
 /* starters read brighter than bench — lineup hierarchy at a glance */
 .slot.bench .sp { color: var(--soft); font-weight: 500; }
-.slot.bench .sl { color: var(--dim); }
-.slot.empty .sp { color: var(--dim); font-weight: 500; }
-.slot.keeper { background: linear-gradient(90deg, rgba(255,201,74,.11), transparent 70%); }
+/* an open slot is a faint leader line, not a dash: it reads as "available" */
+.slot.empty .sl { color: var(--dim); background: transparent; box-shadow: inset 0 0 0 1px rgba(255,255,255,.06); }
+.slot.empty .sp { height: 0; border-bottom: 1px dotted var(--dim); opacity: .7; }
+.slot.keeper { background: linear-gradient(90deg, rgba(255,201,74,.10), transparent 70%); }
 .slot.keeper .sp { color: var(--gold); }
 .kx {
   font-family: var(--data); font-style: normal;
-  font-size: 8px; font-weight: 800; letter-spacing: .06em; margin-left: 6px;
+  font-size: 7.5px; font-weight: 800; letter-spacing: .06em; margin-left: 5px;
   background: var(--gold); color: #1a1300; padding: 1px 4px; border-radius: 2px;
   vertical-align: 1px;
 }
@@ -253,11 +274,19 @@ body {
 }
 .slot.fresh { animation: slotIn 2.4s ease-out; }
 
+/* shorter screens: tighten the type so fifteen rows still fit */
+@media (max-height: 860px) {
+  .slot .sp { font-size: 12px; } .slot .sc { font-size: 11.5px; }
+  .slot .sl { font-size: 7.5px; padding: 2px 0; }
+  .m-left b { font-size: 29px; } .m-max b { font-size: 21px; }
+  .team-top { padding: 6px 10px 6px; } .team-top h2 { font-size: 17px; }
+}
+
 /* over-budget alarm (entry form blocks it; this is the backstop) */
 .team.over { border-color: var(--red); box-shadow: 0 0 0 1px var(--red) inset, 0 6px 18px rgba(0,0,0,.45); }
 .warn {
-  font-family: var(--data); font-size: 8.5px; font-weight: 800; letter-spacing: .12em;
-  background: var(--red); color: #fff; padding: 2px 6px; border-radius: 2px;
+  font-family: var(--data); font-size: 8px; font-weight: 800; letter-spacing: .12em;
+  background: var(--red); color: #fff; padding: 2px 5px; border-radius: 2px;
 }
 
 /* =============================== CRAWL ================================== */

@@ -265,13 +265,18 @@
   /* ---------- render ---------- */
   let freshPick = null;   // most recent pick, flashed in place for one render
 
-  function slotRow(slot, p) {
-    const bench = slot.id[0] === 'B' ? ' bench' : '';
-    if (!p) return `<div class="slot empty${bench}"><span class="sl">${slot.label}</span>
-      <span class="sp">—</span></div>`;
+  const POS_CLASS = { QB: 'p-qb', RB: 'p-rb', WR: 'p-wr', TE: 'p-te', K: 'p-k', 'D/ST': 'p-dst' };
+  function slotRow(slot, p, i) {
+    const bench = slot.id[0] === 'B';
+    const first = slot.id === 'B1' ? ' bench-first' : '';
+    // colour the tag by the player actually in the slot, so FLEX reads as the
+    // position that filled it; empty slots stay neutral
+    const pc = p ? (POS_CLASS[p.pos] || '') : '';
+    if (!p) return `<div class="slot empty${bench ? ' bench' : ''}${first}">
+      <span class="sl">${slot.label}</span><span class="sp"></span></div>`;
     const fresh = freshPick && p.name === freshPick ? ' fresh' : '';
-    return `<div class="slot${bench}${p.keeper ? ' keeper' : ''}${fresh}">
-      <span class="sl">${slot.label}</span>
+    return `<div class="slot${bench ? ' bench' : ''}${first}${p.keeper ? ' keeper' : ''}${fresh}">
+      <span class="sl ${pc}">${slot.label}</span>
       <span class="sp">${esc(p.name)}${p.keeper ? '<i class="kx">K</i>' : ''}</span>
       <span class="sc">$${p.cost}</span>
     </div>`;
@@ -283,16 +288,16 @@
     const low = !over && st.remaining <= 5;
     return `<section class="team${over ? ' over' : ''}" style="--tc:${COLORS[t.ti % 10]}">
       <header class="team-top">
-        <h2>${esc(t.name)}${over ? ' <span class="warn">OVER BUDGET</span>' : ''}</h2>
-        <div class="nums">
-          <div class="num big${low || over ? ' low' : ''}"><b>$${st.remaining}</b><span>left</span></div>
-          <div class="num max"><b>$${st.maxBid}</b><span>max bid</span></div>
-          <div class="num minor"><b>${st.open}</b><span>spots</span></div>
-          <div class="num minor"><b>$${st.avgPerOpen.toFixed(0)}</b><span>avg/spot</span></div>
+        <h2>${esc(t.name)}${over ? ' <span class="warn">OVER</span>' : ''}</h2>
+        <div class="money">
+          <div class="m m-left${low || over ? ' low' : ''}"><b>$${st.remaining}</b><span>left</span></div>
+          <div class="m m-max"><b>$${st.maxBid}</b><span>max bid</span></div>
+          <div class="m m-mini"><b>${st.open}</b><span>spots</span></div>
+          <div class="m m-mini"><b>$${st.avgPerOpen.toFixed(0)}</b><span>avg</span></div>
         </div>
       </header>
       <div class="slots">
-        ${E.SLOTS.map((s) => slotRow(s, st.slots[s.id])).join('')}
+        ${E.SLOTS.map((sl, i) => slotRow(sl, st.slots[sl.id], i)).join('')}
       </div>
     </section>`;
   }
