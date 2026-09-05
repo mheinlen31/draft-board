@@ -788,3 +788,20 @@ body.watch .fld, body.watch .go { cursor: not-allowed; }
 .ft-sub { font-size: 11px; color: var(--soft); }
 .finale-foot { margin-top: 18px; font-size: 11px; letter-spacing: .1em; text-transform: uppercase; color: var(--faint); text-align: center; }
 @media (prefers-reduced-motion: reduce) { .finale-inner { animation: none; } }
+
+/* ---- nomination order ---- */
+.nom-pill { display:inline-flex; align-items:center; gap:8px; margin-right:14px; padding:3px 8px 3px 10px; border:1px solid rgba(255,201,74,.45); border-radius:3px; background:rgba(255,201,74,.10); font-family:var(--display); font-size:13px; letter-spacing:.05em; text-transform:uppercase; white-space:nowrap; flex:0 0 auto; }
+.nom-pill span { font-size:9.5px; color:var(--faint); letter-spacing:.14em; }
+.nom-pill b { font-weight:800; color:#ffc94a; }
+.nom-pill .nomctl { background:transparent; border:1px solid var(--line2); color:var(--faint); border-radius:3px; font:700 14px/1 var(--display); padding:1px 7px; cursor:pointer; }
+.nom-pill .nomctl:hover { color:var(--ink); border-color:var(--gold); }
+.team.nom { border-color:rgba(255,201,74,.6); box-shadow:0 0 0 1px rgba(255,201,74,.4), 0 8px 22px rgba(0,0,0,.45); }
+.team.nom .team-top h2 { padding-right:98px; }
+.nomtag { position:absolute; top:7px; right:8px; z-index:2; font-family:var(--display); font-size:9.5px; font-weight:800; letter-spacing:.14em; text-transform:uppercase; color:#111; background:#ffc94a; padding:3px 7px; border-radius:2px; animation:nompulse 2.4s ease-in-out infinite; }
+@keyframes nompulse { 0%,100% { box-shadow:0 0 0 0 rgba(255,201,74,0); } 50% { box-shadow:0 0 0 5px rgba(255,201,74,.28); } }
+.order-body { display:grid; grid-template-columns:1fr 1fr; gap:7px; margin-bottom:12px; }
+.obtn { position:relative; display:flex; align-items:center; gap:10px; padding:12px; border:1px solid var(--line2); border-left:4px solid var(--tc); border-radius:3px; background:var(--panel2); color:var(--ink); font-family:var(--display); font-weight:800; font-size:14px; text-transform:uppercase; letter-spacing:.03em; cursor:pointer; text-align:left; }
+.obtn i { display:inline-flex; align-items:center; justify-content:center; width:24px; height:24px; border-radius:50%; border:1px solid var(--line2); font-style:normal; font-size:12px; color:var(--faint); flex:0 0 auto; }
+.obtn.on { border-color:rgba(255,201,74,.6); } .obtn.on i { background:#ffc94a; color:#111; border-color:#ffc94a; }
+.order-foot { display:flex; gap:8px; align-items:center; } .order-foot .go { margin-left:auto; }
+@media (prefers-reduced-motion: reduce) { .nomtag { animation:none; } }

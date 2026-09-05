@@ -39,6 +39,8 @@ window.DraftStore = (function () {
       t.keeperPool = asArray(t.keeperPool);
     });
     st.picks = asArray(st.picks);
+    st.nomOrder = asArray(st.nomOrder);          // clockwise nomination order (team indices)
+    st.nomOffset = +st.nomOffset || 0;           // manual skips/backs applied to the pointer
     return st;
   }
 
@@ -57,7 +59,7 @@ window.DraftStore = (function () {
     // stamp the keeper data this seed was built from, so a state seeded
     // from older data can be told apart from a newer one
     return { season: K.season || 2026, teams, picks: [], started: false,
-             dataGen: K.generated || '' };
+             nomOrder: [], nomOffset: 0, dataGen: K.generated || '' };
   }
 
   function load() {
@@ -166,6 +168,18 @@ window.DraftStore = (function () {
       return true;
     },
     canUndo() { return undo.length > 0; },
+
+    /* Nomination order: set once the room sits down (clockwise from whoever
+       goes first). Who's up is derived from the pick count, so undo walks it
+       back on its own; a skip or a back is a manual offset. */
+    setOrder(order) { state.nomOrder = (order || []).slice(); state.nomOffset = 0; save(); },
+    bumpNom(delta) { state.nomOffset = (state.nomOffset || 0) + delta; save(); },
+    nominatorTi() {
+      const o = state.nomOrder || [];
+      if (!o.length) return null;
+      const n = o.length, i = (((state.picks.length + (state.nomOffset || 0)) % n) + n) % n;
+      return o[i];
+    },
 
     reset() { state = seed(); undo.length = 0; save(); },
 

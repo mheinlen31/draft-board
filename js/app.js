@@ -346,8 +346,10 @@
     const st = E.teamState(t);
     const over = st.remaining < 0;                  // shouldn't happen; loudly flag if it does
     const low = !over && st.remaining <= 5;
-    return `<section class="team${over ? ' over' : ''}${t.ti === wonTi ? ' won' : ''}" data-ti="${t.ti}" style="--tc:${COLORS[t.ti % 10]}">
+    const nom = t.ti === S.nominatorTi();
+    return `<section class="team${over ? ' over' : ''}${t.ti === wonTi ? ' won' : ''}${nom ? ' nom' : ''}" data-ti="${t.ti}" style="--tc:${COLORS[t.ti % 10]}">
       <header class="team-top">
+        ${nom ? '<span class="nomtag">Nominating</span>' : ''}
         <h2>${esc(t.name)}${over ? ' <span class="warn">OVER</span>' : ''}</h2>
         <div class="money">
           <div class="m m-left${low || over ? ' low' : ''}"><b>$${st.remaining}</b><span>left</span></div>
@@ -419,6 +421,12 @@
       $('ticker').innerHTML = `<div class="crawl"><div class="crawl-track" style="animation-duration:${secs}s">${items}${items}</div></div>`;
     }
     $('btn-undo').disabled = !S.canUndo();
+    // who's on the mic
+    const nt = S.nominatorTi(), pill = $('nom-pill');
+    const nteam = nt == null ? null : teams.find((t) => t.ti === nt);
+    pill.hidden = !nteam;
+    if (nteam) pill.innerHTML = `<span>Nominating</span><b style="--tc:${COLORS[nt % 10]}">${esc(nteam.name)}</b>` +
+      (isOperator() ? '<button type="button" class="nomctl" data-d="-1" title="Back one">‹</button><button type="button" class="nomctl" data-d="1" title="Skip one">›</button>' : '');
     renderFinale(picks, teams, openNow, spent);
   }
   S.onChange(render);
@@ -531,6 +539,44 @@
   const mModal = $('menu-modal');
   $('btn-menu').addEventListener('click', () => { mModal.hidden = false; });
   $('menu-close').addEventListener('click', () => { mModal.hidden = true; });
+
+  /* ---------- nomination order ----------
+     The room finds out who goes first when it sits down, then runs clockwise.
+     The operator taps the teams in that order; the board tracks who's up from
+     the pick count (so undo walks it back), with ‹ › on the pill for a skip. */
+  const oModal = $('order-modal');
+  let orderDraft = [];
+  function renderOrder() {
+    const teams = state().teams;
+    $('order-body').innerHTML = teams.map((t) => {
+      const i = orderDraft.indexOf(t.ti);
+      return `<button type="button" class="obtn${i >= 0 ? ' on' : ''}" data-ti="${t.ti}" style="--tc:${COLORS[t.ti % 10]}"><i>${i >= 0 ? i + 1 : ''}</i>${esc(t.name)}</button>`;
+    }).join('');
+    $('order-save').disabled = orderDraft.length !== teams.length;
+  }
+  $('m-order').addEventListener('click', () => {
+    mModal.hidden = true; orderDraft = (state().nomOrder || []).slice(); renderOrder(); oModal.hidden = false;
+  });
+  $('order-close').addEventListener('click', () => { oModal.hidden = true; });
+  $('order-clear').addEventListener('click', () => { orderDraft = []; renderOrder(); });
+  $('order-off').addEventListener('click', () => { S.setOrder([]); oModal.hidden = true; flash('Nomination order off'); });
+  $('order-save').addEventListener('click', () => {
+    S.setOrder(orderDraft); oModal.hidden = true;
+    const t = state().teams.find((x) => x.ti === S.nominatorTi());
+    flash(t ? `${t.name} nominates first` : 'Order saved');
+  });
+  $('order-body').addEventListener('click', (e) => {
+    const b = e.target.closest('.obtn'); if (!b) return;
+    const ti = +b.dataset.ti, i = orderDraft.indexOf(ti);
+    if (i >= 0) orderDraft.splice(i, 1); else orderDraft.push(ti);
+    renderOrder();
+  });
+  $('nom-pill').addEventListener('click', (e) => {
+    const b = e.target.closest('.nomctl'); if (!b || !isOperator()) return;
+    S.bumpNom(+b.dataset.d);
+    const t = state().teams.find((x) => x.ti === S.nominatorTi());
+    flash(t ? `${t.name} nominates` : 'Order adjusted');
+  });
   const dl = (name, text, type) => {
     const a = document.createElement('a');
     a.href = URL.createObjectURL(new Blob([text], { type }));
