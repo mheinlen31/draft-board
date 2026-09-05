@@ -78,6 +78,11 @@ body {
 
 .pick-form { display: flex; gap: 7px; align-items: stretch; flex: 1 1 auto; }
 .fld {
+  /* min-width:0 is what lets flex-basis actually size these. A flex item's
+     default min-width is its min-content width, and for the team <select>
+     that is the longest team name -- AFRESHAYPEPPER ASAYWHEN blew the field
+     out to 283px and pushed the header past the screen edge. */
+  min-width: 0;
   font-family: var(--data); font-size: 16px; font-weight: 500;
   background: #0a1120; color: var(--ink);
   border: 1px solid var(--line2); border-radius: 3px;
