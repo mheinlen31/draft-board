@@ -647,10 +647,14 @@ body { animation: drift 46s ease-in-out infinite alternate; }
 }
 body { background-size: 160% 100%, auto; }
 
-/* header sheen: a light band sweeps the chyron every few seconds */
-.bar { overflow: hidden; }
+/* header sheen: a light band sweeps the chyron every few seconds.
+   NO overflow:hidden on .bar -- the typeahead dropdown lives inside the
+   header and hangs below it; clipping the bar hides the menu behind the
+   rosters. The band stays inside the bar vertically (top/bottom 0; skewX
+   doesn't change a box's vertical extent) and can only overhang off the
+   sides of the screen, which body{overflow:hidden} already clips. */
 .bar::after {
-  content: ''; position: absolute; top: -40%; bottom: -40%; left: -30%; width: 22%;
+  content: ''; position: absolute; top: 0; bottom: 0; left: -30%; width: 22%;
   background: linear-gradient(100deg, transparent, rgba(255,255,255,.06), transparent);
   transform: skewX(-18deg); pointer-events: none;
   animation: sheen 9s ease-in-out infinite;
