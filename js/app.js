@@ -478,6 +478,10 @@
   document.addEventListener('keydown', (e) => {
     if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'z') {
       e.preventDefault();
+      // a misentry is caught in seconds; a Cmd+Z minutes later is probably a slip
+      const last = state().picks[state().picks.length - 1];
+      const stale = last && last.ts && (Date.now() - last.ts) > 20000;
+      if (stale && !confirm(`Undo ${last.name} · $${last.cost}? That sale is ${Math.round((Date.now() - last.ts) / 1000)}s old.`)) return;
       doUndo();
     }
   });
@@ -630,6 +634,11 @@
     window.DraftSync.onConnectionChange((up) => {
       setPill(up ? 'live' : 'off', up ? 'Live' : 'Offline',
         up ? 'Synced across devices' : 'Reconnecting — picks are saved locally');
+      // back online: push whatever was saved while the room was unreachable
+      if (up && isOperator()) {
+        window.DraftSync.publish(S.get());
+        if (clockPlayer) publishClock(true);
+      }
     }).catch(() => {});
   })();
 
