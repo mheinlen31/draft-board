@@ -17,6 +17,7 @@ if [ ! -f ../sunday-funday/js/data.js ]; then
   exit 1
 fi
 cp ../sunday-funday/js/data.js js/keeperdata.js
+cp ../sunday-funday/js/logos.js js/logos.js
 
 echo "==> refreshing the draftable player pool from ESPN"
 python3 build_players.py
