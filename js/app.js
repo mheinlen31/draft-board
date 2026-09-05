@@ -166,10 +166,10 @@
     const legal = E.canRoster(t, p.pos);
     if (!legal.ok) return flash(`${t.name} ${legal.why}`);
 
-    freshPick = p.name;
+    freshPick = p.name; wonTi = ti;
     const pick = S.addPick({ ti, name: p.name, pos: p.pos, nfl: p.nfl, img: p.img,
       cost, rank: p.rank != null ? p.rank : E.rankOf(p), aav: p.aav });
-    setTimeout(() => { freshPick = null; }, 2600);
+    setTimeout(() => { freshPick = null; wonTi = null; }, 2600);
     hideClock();          // SOLD splash takes over from the clock
     horn();
     splash(t, pick);
@@ -264,6 +264,8 @@
 
   /* ---------- render ---------- */
   let freshPick = null;   // most recent pick, flashed in place for one render
+  let wonTi = null;       // team that just won a player: its card glows for a beat
+  const prevNums = {};    // per-team {left, max} from the last render, for the count tweens
 
   const POS_CLASS = { QB: 'p-qb', RB: 'p-rb', WR: 'p-wr', TE: 'p-te', K: 'p-k', 'D/ST': 'p-dst' };
   function slotRow(slot, p, i) {
@@ -286,7 +288,7 @@
     const st = E.teamState(t);
     const over = st.remaining < 0;                  // shouldn't happen; loudly flag if it does
     const low = !over && st.remaining <= 5;
-    return `<section class="team${over ? ' over' : ''}" style="--tc:${COLORS[t.ti % 10]}">
+    return `<section class="team${over ? ' over' : ''}${t.ti === wonTi ? ' won' : ''}" data-ti="${t.ti}" style="--tc:${COLORS[t.ti % 10]}">
       <header class="team-top">
         <h2>${esc(t.name)}${over ? ' <span class="warn">OVER</span>' : ''}</h2>
         <div class="money">
@@ -303,18 +305,61 @@
     </section>`;
   }
 
+  /* Broadcast numbers don't jump, they roll. Tween a <b> from its last value
+     to the new one over ~700ms; a falling number flashes red on the way. */
+  function tween(el, from, to) {
+    if (from === to || !el) return;
+    const t0 = performance.now(), dur = 700;
+    el.classList.add(to < from ? 'dip' : 'rise');
+    const step = (now) => {
+      const k = Math.min(1, (now - t0) / dur), e = 1 - Math.pow(1 - k, 3);
+      el.textContent = '$' + Math.round(from + (to - from) * e);
+      if (k < 1) requestAnimationFrame(step);
+      else setTimeout(() => el.classList.remove('dip', 'rise'), 500);
+    };
+    requestAnimationFrame(step);
+  }
+
   function render() {
-    $('grid').innerHTML = state().teams.map(teamCard).join('');
+    const teams = state().teams;
+    $('grid').innerHTML = teams.map(teamCard).join('');
+    // roll the money on any card whose numbers moved since last render
+    teams.forEach((t) => {
+      const st = E.teamState(t), prev = prevNums[t.ti];
+      const card = $('grid').querySelector(`.team[data-ti="${t.ti}"]`);
+      if (card && prev) {
+        tween(card.querySelector('.m-left b'), prev.left, st.remaining);
+        tween(card.querySelector('.m-max b'), prev.max, st.maxBid);
+      }
+      prevNums[t.ti] = { left: st.remaining, max: st.maxBid };
+    });
+
     const picks = state().picks;
     const spent = picks.reduce((s, p) => s + p.cost, 0);
     const avg = picks.length ? (spent / picks.length).toFixed(1) : '0';
+    // draft progress: picks made against every spot that was open at the start
+    const openNow = teams.reduce((s, t) => s + E.teamState(t).open, 0);
+    const totalSpots = picks.length + openNow;
+    const inPlay = spent + teams.reduce((s, t) => s + Math.max(0, E.teamState(t).remaining), 0);
     $('draft-stats').innerHTML =
-      `<b>${picks.length}</b> picks · <b>$${spent}</b> spent · avg <b>$${avg}</b>`;
-    $('ticker').innerHTML = picks.slice(-14).reverse().map((p) => `
+      `<b>${picks.length}</b>/${totalSpots} picks · <b>$${spent}</b> of $${inPlay} · avg <b>$${avg}</b>`;
+    $('pfill').style.width = (totalSpots ? (picks.length / totalSpots) * 100 : 0) + '%';
+
+    // the crawl: newest first, duplicated so the loop is seamless; it only
+    // rolls once there's enough to roll, and pauses under the mouse so a
+    // misentry can still be clicked away
+    const items = picks.slice(-14).reverse().map((p) => `
       <span class="tick" data-n="${p.n}" title="Click to remove (misentry)">
         <i style="background:${COLORS[p.ti % 10]}"></i>
-        ${esc(p.name)} <b>$${p.cost}</b> <em>${esc(p.team)}</em></span>`).join('')
-      || '<span class="tick muted">No picks yet — type a player, team, and price above.</span>';
+        ${esc(p.name)} <b>$${p.cost}</b> <em>${esc(p.team)}</em></span>`).join('');
+    if (!picks.length) {
+      $('ticker').innerHTML = '<span class="tick muted">No picks yet — type a player, team, and price above.</span>';
+    } else if (picks.length < 4) {
+      $('ticker').innerHTML = items;
+    } else {
+      const secs = Math.max(24, Math.min(picks.length, 14) * 4);
+      $('ticker').innerHTML = `<div class="crawl"><div class="crawl-track" style="animation-duration:${secs}s">${items}${items}</div></div>`;
+    }
     $('btn-undo').disabled = !S.canUndo();
   }
   S.onChange(render);

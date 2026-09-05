@@ -632,3 +632,95 @@ body {
   .fld-cost { flex: 0 0 76px; font-size: 19px; }
   .dstat { display: none; }
 }
+
+
+/* ============================ MOTION LAYER ==============================
+   Broadcast, not dashboard: numbers roll, the winner's card lights up, the
+   crawl never stops, the studio breathes. Everything here is presentation;
+   nothing changes a value. */
+
+/* studio light drifts slowly across the ground */
+body { animation: drift 46s ease-in-out infinite alternate; }
+@keyframes drift {
+  from { background-position: 0% 0%, 0 0; }
+  to   { background-position: 100% 0%, 0 0; }
+}
+body { background-size: 160% 100%, auto; }
+
+/* header sheen: a light band sweeps the chyron every few seconds */
+.bar { overflow: hidden; }
+.bar::after {
+  content: ''; position: absolute; top: -40%; bottom: -40%; left: -30%; width: 22%;
+  background: linear-gradient(100deg, transparent, rgba(255,255,255,.06), transparent);
+  transform: skewX(-18deg); pointer-events: none;
+  animation: sheen 9s ease-in-out infinite;
+}
+@keyframes sheen { 0% { left: -30%; } 45%, 100% { left: 130%; } }
+
+/* draft progress: a red fill along the header's bottom edge */
+.pfill {
+  position: absolute; left: 0; bottom: 0; height: 3px; width: 0;
+  background: linear-gradient(90deg, var(--red-dk), var(--red), #ff7a80);
+  box-shadow: 0 0 12px rgba(224,27,36,.8);
+  transition: width .9s cubic-bezier(.2,.8,.2,1);
+  z-index: 41;
+}
+
+/* live dot pulses */
+.sync-pill.live::before { animation: livepulse 2s ease-in-out infinite; }
+
+/* money rolls, and flashes red on the way down */
+.m b { transition: color .25s; }
+.m-left.dip b, .m-max.dip b, .m b.dip { color: #ff6b70 !important; text-shadow: 0 0 18px rgba(255,80,90,.55); }
+.m b.rise { color: #7fe7b0 !important; }
+
+/* the team that just won: a ring in its own colour, then it settles */
+.team.won { animation: won 2.4s cubic-bezier(.2,.8,.2,1) both; }
+@keyframes won {
+  0%   { box-shadow: 0 0 0 0 var(--tc), 0 8px 22px rgba(0,0,0,.45); }
+  18%  { box-shadow: 0 0 0 4px var(--tc), 0 0 34px 6px color-mix(in srgb, var(--tc) 55%, transparent), 0 8px 22px rgba(0,0,0,.45); }
+  100% { box-shadow: 0 0 0 0 transparent, 0 8px 22px rgba(0,0,0,.45); }
+}
+.team.won .team-top { animation: wonTop 2.4s ease-out both; }
+@keyframes wonTop {
+  0%, 20% { background-color: color-mix(in srgb, var(--tc) 40%, var(--panel2)); }
+  100%    { background-color: var(--panel2); }
+}
+
+/* the crawl */
+.crawl { overflow: hidden; flex: 1 1 auto; display: flex; align-items: stretch; }
+.crawl-track { display: inline-flex; flex: 0 0 auto; animation: crawl 40s linear infinite; will-change: transform; }
+@keyframes crawl { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+.crawl:hover .crawl-track { animation-play-state: paused; }
+.crawl .tick:first-child { border-left: 1px solid var(--line); }
+
+/* SOLD stamp slams onto the splash a beat after the card lands */
+.splash-inner::before {
+  content: 'SOLD'; position: absolute; top: 14px; right: 26px; z-index: 2;
+  font-family: var(--display); font-weight: 800; font-size: clamp(22px, 3vw, 40px);
+  letter-spacing: .18em; color: var(--red);
+  border: 4px solid var(--red); border-radius: 6px; padding: 2px 14px 0;
+  transform: rotate(-8deg); opacity: 0; mix-blend-mode: screen;
+  text-shadow: 0 0 18px rgba(224,27,36,.5);
+}
+.splash.go .splash-inner::before { animation: stamp .45s .28s cubic-bezier(.16,1.3,.3,1) both; }
+@keyframes stamp {
+  from { transform: rotate(-8deg) scale(2.4); opacity: 0; }
+  60%  { transform: rotate(-8deg) scale(.96); opacity: 1; }
+  to   { transform: rotate(-8deg) scale(1); opacity: .95; }
+}
+/* and a band of the team's colour wipes across once */
+.splash.go .splash-inner .splash-text::before {
+  content: ''; position: absolute; top: -60%; bottom: -60%; left: -120%; width: 60%;
+  background: linear-gradient(100deg, transparent, color-mix(in srgb, var(--sc) 55%, transparent), transparent);
+  transform: skewX(-16deg); pointer-events: none; z-index: 0;
+  animation: wipe .9s .05s ease-out both;
+}
+@keyframes wipe { from { left: -120%; } to { left: 220%; } }
+
+@media (prefers-reduced-motion: reduce) {
+  body, .bar::after, .sync-pill.live::before, .team.won, .team.won .team-top,
+  .crawl-track, .splash.go .splash-inner::before, .splash.go .splash-inner .splash-text::before { animation: none; }
+  .splash-inner::before { opacity: .95; }
+  .pfill { transition: none; }
+}
