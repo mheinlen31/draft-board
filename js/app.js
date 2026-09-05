@@ -277,7 +277,7 @@
     const fresh = freshPick && p.name === freshPick ? ' fresh' : '';
     return `<div class="slot${bench ? ' bench' : ''}${first}${p.keeper ? ' keeper' : ''}${fresh}">
       <span class="sl ${pc}">${slot.label}</span>
-      <span class="sp">${esc(p.name)}${p.keeper ? '<i class="kx">K</i>' : ''}</span>
+      <span class="sp">${esc(p.name)}</span>
       <span class="sc">$${p.cost}</span>
     </div>`;
   }
@@ -292,7 +292,8 @@
         <div class="money">
           <div class="m m-left${low || over ? ' low' : ''}"><b>$${st.remaining}</b><span>left</span></div>
           <div class="m m-max"><b>$${st.maxBid}</b><span>max bid</span></div>
-          <div class="m m-mini"><b>${st.open}</b><span>spots</span></div>
+          ${st.tax ? `<div class="m m-tax"><b>−$${st.tax}</b><span>tax</span></div>` : ''}
+          <div class="m m-mini m-spots"><b>${st.open}</b><span>spots</span></div>
           <div class="m m-mini"><b>$${st.avgPerOpen.toFixed(0)}</b><span>avg</span></div>
         </div>
       </header>
@@ -350,7 +351,8 @@
       return `<div class="kteam" style="--tc:${COLORS[t.ti % 10]}">
         <div class="kteam-head">
           <b>${esc(t.name)}</b>
-          <span>purse $${t.purse} · keepers $${st.spent} · left $${st.remaining}</span>
+          <span>purse $${t.purse} · keepers $${st.keeperSpend}${st.tax
+            ? ` · <b class="ktax">over cap, tax $${st.tax}</b>` : ''} · left $${st.remaining}</span>
         </div>
         <div class="kchips">${t.keeperPool.map((p) => `
           <button type="button" class="kchip${chosen.has(p.name) ? ' on' : ''}"

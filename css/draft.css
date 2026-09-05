@@ -204,7 +204,10 @@ body {
 .m-left.low b { color: var(--red); }
 .m-max b { font-size: 24px; color: var(--ink); }
 .m-mini { text-align: right; }
-.m-mini:nth-of-type(3) { margin-left: auto; }
+.m-spots { margin-left: auto; }
+.m-tax b { font-size: 13px; font-weight: 800; color: var(--red); }
+.m-tax span { color: var(--red); opacity: .85; }
+.ktax { color: var(--red); font-weight: 800; }
 .m-mini b { font-size: 13px; font-weight: 700; color: var(--soft); }
 .m-mini span { color: var(--dim); }
 
@@ -261,12 +264,6 @@ body {
 .slot.empty .sp { height: 0; border-bottom: 1px dotted var(--dim); opacity: .7; }
 .slot.keeper { background: linear-gradient(90deg, rgba(255,201,74,.10), transparent 70%); }
 .slot.keeper .sp { color: var(--gold); }
-.kx {
-  font-family: var(--data); font-style: normal;
-  font-size: 7.5px; font-weight: 800; letter-spacing: .06em; margin-left: 5px;
-  background: var(--gold); color: #1a1300; padding: 1px 4px; border-radius: 2px;
-  vertical-align: 1px;
-}
 /* just-drafted row flashes so the room sees where the pick landed */
 @keyframes slotIn {
   from { background: rgba(255,201,74,.4); }

@@ -6,6 +6,7 @@
 */
 window.DraftEngine = (function () {
   const ROSTER_SIZE = 15;
+  const KEEPER_CAP = 100;   // keeper budget; $2 luxury tax per $1 over
   const SLOTS = [
     { id: 'QB', label: 'QB', takes: ['QB'] },
     { id: 'RB1', label: 'RB', takes: ['RB'] },
@@ -125,7 +126,13 @@ window.DraftEngine = (function () {
 
   function teamState(team) {
     const players = team.players || [];
-    const spent = players.reduce((s, p) => s + (+p.cost || 0), 0);
+    // Manifesto: keepers come out of a $100 budget, and every $1 over it costs
+    // $2 of luxury tax. Both the keeper prices and the tax come off the purse,
+    // so a team $3 over doesn't just lose the $3 -- it loses $9.
+    const keeperSpend = players.filter((p) => p.keeper)
+      .reduce((s, p) => s + (+p.cost || 0), 0);
+    const tax = Math.max(0, keeperSpend - KEEPER_CAP) * 2;
+    const spent = players.reduce((s, p) => s + (+p.cost || 0), 0) + tax;
     const remaining = (team.purse || 0) - spent;
     const filled = players.length;
     const open = Math.max(0, ROSTER_SIZE - filled);
@@ -135,7 +142,7 @@ window.DraftEngine = (function () {
     const draftSpend = drafted.reduce((s, p) => s + (+p.cost || 0), 0);
     const assigned = assignSlots(players);
     return {
-      spent, remaining, filled, open, maxBid,
+      spent, remaining, keeperSpend, tax, filled, open, maxBid,
       needs: needsOf(assigned.slots),
       avgPerPick: drafted.length ? draftSpend / drafted.length : 0,
       avgPerOpen: open > 0 ? remaining / open : 0,
