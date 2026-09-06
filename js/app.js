@@ -339,7 +339,8 @@
     if (!p) return `<div class="slot empty${bench ? ' bench' : ''}${first}">
       <span class="sl">${slot.label}</span><span class="sp"></span></div>`;
     const fresh = freshPick && p.name === freshPick ? ' fresh' : '';
-    return `<div class="slot${bench ? ' bench' : ''}${first}${p.keeper ? ' keeper' : ''}${fresh}">
+    // a drafted player carries his pick number so the operator can tap him to fix the price or team
+    return `<div class="slot${bench ? ' bench' : ''}${first}${p.keeper ? ' keeper' : ' drafted'}${fresh}"${p.keeper || p.n == null ? '' : ` data-n="${p.n}" title="Tap to edit this pick"`}>
       <span class="sl ${pc}">${slot.label}</span>
       <span class="sp">${esc(p.name)}</span>
       <span class="sc">$${p.cost}</span>
@@ -423,7 +424,7 @@
     // rolls once there's enough to roll, and pauses under the mouse so a
     // misentry can still be clicked away
     const items = picks.slice(-14).reverse().map((p) => `
-      <span class="tick" data-n="${p.n}" title="Click to remove (misentry)">
+      <span class="tick" data-n="${p.n}" title="Tap to edit or remove">
         <i style="background:${COLORS[p.ti % 10]}"></i>
         ${esc(p.name)} <b>$${p.cost}</b> <em>${esc(p.team)}</em></span>`).join('');
     if (!picks.length) {
@@ -483,7 +484,59 @@
   $('ticker').addEventListener('click', (e) => {
     const t = e.target.closest('.tick');
     if (!t || !t.dataset.n) return;
-    if (confirm('Remove this pick? (misentry)')) S.removePick(+t.dataset.n);
+    openEdit(+t.dataset.n);
+  });
+  $('grid').addEventListener('click', (e) => {
+    const row = e.target.closest('.slot[data-n]');
+    if (row) openEdit(+row.dataset.n);
+  });
+
+  /* ---------- edit a pick ----------
+     A price typed wrong ten picks ago, or a player sold to the wrong team:
+     tap him in the crawl or on his card, change it, save. The pick keeps its
+     number; the same legality checks as a new pick apply to the new team. */
+  const eModal = $('edit-modal');
+  let editN = null;
+  function openEdit(n) {
+    if (!isOperator()) return flash('Watch-only — enter the operator code to run the draft');
+    const p = state().picks.find((x) => x.n === n);
+    if (!p) return flash('That pick is no longer on the board');
+    editN = n;
+    $('edit-name').textContent = p.name;
+    $('edit-meta').textContent = `${[p.pos, p.nfl].filter(Boolean).join(' · ')} · pick ${p.n} · sold to ${p.team} for $${p.cost}`;
+    $('edit-team').innerHTML = state().teams.map((t) => `<option value="${t.ti}"${t.ti === p.ti ? ' selected' : ''}>${esc(t.name)}</option>`).join('');
+    $('edit-cost').value = p.cost;
+    $('edit-note').textContent = 'The pick keeps its place in the order. Same checks as a new pick: the team\'s max bid and its roster rules.';
+    eModal.hidden = false;
+    $('edit-cost').focus(); $('edit-cost').select();
+  }
+  function saveEdit() {
+    const p = state().picks.find((x) => x.n === editN);
+    if (!p) { eModal.hidden = true; return; }
+    const ti = +$('edit-team').value, cost = parseInt($('edit-cost').value, 10);
+    if (!(cost >= 1)) { $('edit-note').textContent = 'Price has to be at least $1.'; return; }
+    // judge the change against the target team WITHOUT this pick on it
+    const trial = JSON.parse(JSON.stringify(S.team(ti)));
+    if (ti === p.ti) { const i = trial.players.findIndex((x) => x.name === p.name && !x.keeper); if (i >= 0) trial.players.splice(i, 1); }
+    const st = E.teamState(trial);
+    if (st.open <= 0) { $('edit-note').textContent = `${trial.name} has no open spot.`; return; }
+    if (cost > st.maxBid) { $('edit-note').textContent = `Over max bid — ${trial.name} can pay at most $${st.maxBid} for this spot.`; return; }
+    const legal = E.canRoster(trial, p.pos);
+    if (!legal.ok) { $('edit-note').textContent = `${trial.name} ${legal.why}.`; return; }
+    const before = `${p.team} $${p.cost}`;
+    S.editPick(editN, { ti, cost });
+    eModal.hidden = true;
+    const after = state().picks.find((x) => x.n === editN);
+    flash(`${p.name}: ${before} → ${after.team} $${after.cost}`);
+  }
+  $('edit-save').addEventListener('click', saveEdit);
+  $('edit-cost').addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); saveEdit(); } });
+  $('edit-close').addEventListener('click', () => { eModal.hidden = true; });
+  $('edit-remove').addEventListener('click', () => {
+    const p = state().picks.find((x) => x.n === editN);
+    if (!p) { eModal.hidden = true; return; }
+    if (!confirm(`Remove ${p.name} ($${p.cost}, ${p.team}) from the board?`)) return;
+    S.removePick(editN); eModal.hidden = true; flash(`Removed ${p.name} · $${p.cost}`);
   });
 
   /* ---------- undo: the draft-night safety net ----------

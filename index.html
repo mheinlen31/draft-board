@@ -17,7 +17,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Saira+Condensed:wght@500;600;700;800&family=Saira:wght@500;600;700;800&display=swap">
-<link rel="stylesheet" href="css/draft.css?v=20260905205620">
+<link rel="stylesheet" href="css/draft.css?v=20260905210207">
 </head>
 <body>
 
@@ -121,6 +121,24 @@
   </div>
 </div>
 
+<!-- edit a pick -->
+<div id="edit-modal" class="modal" hidden>
+  <div class="modal-box narrow">
+    <div class="modal-head">
+      <h2>Edit pick</h2>
+      <button class="mini" id="edit-close" type="button">Close</button>
+    </div>
+    <div class="edit-who"><b id="edit-name"></b><span id="edit-meta"></span></div>
+    <div class="edit-row"><label for="edit-team">Team</label><select id="edit-team" class="fld fld-team"></select></div>
+    <div class="edit-row"><label for="edit-cost">Price</label><input id="edit-cost" class="fld fld-cost" type="number" min="1" inputmode="numeric"></div>
+    <p class="modal-note" id="edit-note">The pick keeps its place in the order. Same checks as a new pick: the team's max bid and its roster rules.</p>
+    <div class="order-foot">
+      <button class="mini danger" id="edit-remove" type="button">Remove pick</button>
+      <button class="go" id="edit-save" type="button">Save</button>
+    </div>
+  </div>
+</div>
+
 <!-- nomination order -->
 <div id="order-modal" class="modal" hidden>
   <div class="modal-box narrow">
@@ -156,11 +174,11 @@
   </div>
 </div>
 
-<script src="js/keeperdata.js?v=20260905205620"></script>
-<script src="js/players.js?v=20260905205620"></script>
-<script src="js/engine.js?v=20260905205620"></script>
-<script src="js/store.js?v=20260905205620"></script>
-<script src="js/sync.js?v=20260905205620"></script>
-<script src="js/app.js?v=20260905205620"></script>
+<script src="js/keeperdata.js?v=20260905210207"></script>
+<script src="js/players.js?v=20260905210207"></script>
+<script src="js/engine.js?v=20260905210207"></script>
+<script src="js/store.js?v=20260905210207"></script>
+<script src="js/sync.js?v=20260905210207"></script>
+<script src="js/app.js?v=20260905210207"></script>
 </body>
 </html>

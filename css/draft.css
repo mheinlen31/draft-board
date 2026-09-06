@@ -847,3 +847,17 @@ body.watch .fld, body.watch .go { cursor: not-allowed; }
 @media (prefers-reduced-motion: reduce) { .sync-pill.live { animation: none; } }
 .bar-brand { flex: 0 0 auto; }
 .bar-title { white-space: nowrap; }
+
+/* ---- edit a pick ---- */
+.slot.drafted { cursor: pointer; }
+.slot.drafted:hover { background: rgba(255,255,255,.04); }
+body.watch .slot.drafted { cursor: default; }
+.edit-who { display: flex; flex-direction: column; gap: 3px; margin: 4px 0 12px; }
+.edit-who b { font-family: var(--display); font-weight: 800; font-size: 24px; text-transform: uppercase; letter-spacing: .02em; }
+.edit-who span { font-size: 12px; color: var(--faint); letter-spacing: .04em; }
+.edit-row { display: flex; align-items: center; gap: 12px; margin-bottom: 10px; }
+.edit-row label { flex: 0 0 52px; font-size: 10px; font-weight: 800; letter-spacing: .16em; text-transform: uppercase; color: var(--faint); }
+.edit-row .fld { flex: 1 1 auto; min-width: 0; }
+.edit-row .fld-cost { flex: 0 0 110px; font-size: 20px; }
+.mini.danger { color: var(--red); border-color: rgba(240,36,45,.4); }
+.mini.danger:hover { border-color: var(--red); }

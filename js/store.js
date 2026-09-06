@@ -149,6 +149,24 @@ window.DraftStore = (function () {
       return pick;
     },
 
+    /* Fix a pick made a while ago -- wrong price, wrong team -- without
+       unwinding everything after it. The pick keeps its number and place in
+       the order; the player moves teams if the team changed. Undoable. */
+    editPick(n, { ti, cost }) {
+      const p = state.picks.find((x) => x.n === n);
+      if (!p) return false;
+      snapshot();
+      const from = this.team(p.ti), to = this.team(ti);
+      const i = from.players.findIndex((x) => x.name === p.name && !x.keeper);
+      const prev = i >= 0 ? from.players.splice(i, 1)[0] : {};
+      const pl = { ...prev, name: p.name, pos: p.pos, nfl: p.nfl || null, img: p.img || null,
+        cost: +cost, keeper: false, n: p.n, rank: p.rank, aav: p.aav || 0, ts: p.ts || Date.now(), edited: Date.now() };
+      to.players.push(pl);
+      Object.assign(p, { ti, team: to.name, cost: +cost, edited: pl.edited });
+      save();
+      return true;
+    },
+
     removePick(n) {
       snapshot();
       const p = state.picks.find((x) => x.n === n);
