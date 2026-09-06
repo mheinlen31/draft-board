@@ -805,3 +805,27 @@ body.watch .fld, body.watch .go { cursor: not-allowed; }
 .obtn.on { border-color:rgba(255,201,74,.6); } .obtn.on i { background:#ffc94a; color:#111; border-color:#ffc94a; }
 .order-foot { display:flex; gap:8px; align-items:center; } .order-foot .go { margin-left:auto; }
 @media (prefers-reduced-motion: reduce) { .nomtag { animation:none; } }
+
+/* ============================ TV READABILITY ============================ */
+/* The board is mirrored from the iPad to a TV across the room, where the
+   canvas scales up about 1.4x but the viewer sits ten feet away. The
+   starting nine are what the room reads: they get taller rows and bigger
+   type. The bench stays compact, and all fifteen spots stay on screen. */
+@media (min-width: 1200px) and (min-height: 900px) {
+  .slots { grid-template-rows: repeat(9, minmax(0, 1.55fr)) repeat(6, minmax(0, 1fr)); }
+  .slot .sp { font-size: 17px; font-weight: 700; letter-spacing: .01em; }
+  .slot .sc { font-size: 16px; }
+  .slot .sl { flex-basis: 38px; font-size: 10px; padding: 4px 0; }
+  .slot.bench .sp { font-size: 12.5px; font-weight: 600; color: var(--soft); }
+  .slot.bench .sc { font-size: 12px; }
+  .slot.bench .sl { flex-basis: 32px; font-size: 8px; padding: 2px 0; }
+  .slot.bench.empty .sp { opacity: .5; }
+  .m span { font-size: 10px; }
+  .m-mini b { font-size: 14px; }
+  .tick { font-size: 17px; padding: 10px 16px; }
+  .tick i { height: 18px; }
+  .tick em { font-size: 11px; }
+  .ticker-label { font-size: 14px; }
+  .nom-pill { font-size: 15px; } .nom-pill b { font-size: 16px; }
+  .nomtag { font-size: 10.5px; }
+}
