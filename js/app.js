@@ -384,9 +384,19 @@
     requestAnimationFrame(step);
   }
 
+  // names are set as large as the row allows; the few that still overflow
+  // (Smith-Njigba, McCaffrey) drop a size rather than lose letters
+  function fitNames() {
+    $('grid').querySelectorAll('.slot .sp').forEach((el) => {
+      el.classList.remove('long');
+      if (el.scrollWidth > el.clientWidth + 1) el.classList.add('long');
+    });
+  }
+  window.addEventListener('resize', fitNames);
   function render() {
     const teams = state().teams;
     $('grid').innerHTML = teams.map(teamCard).join('');
+    fitNames();
     // roll the money on any card whose numbers moved since last render
     teams.forEach((t) => {
       const st = E.teamState(t), prev = prevNums[t.ti];

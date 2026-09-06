@@ -812,11 +812,15 @@ body.watch .fld, body.watch .go { cursor: not-allowed; }
    starting nine are what the room reads: they get taller rows and bigger
    type. The bench stays compact, and all fifteen spots stay on screen. */
 @media (min-width: 1200px) and (min-height: 900px) {
-  .slots { grid-template-rows: repeat(9, minmax(0, 1.55fr)) repeat(6, minmax(0, 1fr)); }
-  .slot .sp { font-size: 17px; font-weight: 700; letter-spacing: .01em; }
-  .slot .sc { font-size: 16px; }
-  .slot .sl { flex-basis: 38px; font-size: 10px; padding: 4px 0; }
-  .slot.bench .sp { font-size: 12.5px; font-weight: 600; color: var(--soft); }
+  .grid { gap: 8px; padding: 8px 10px; }
+  .team-top { padding: 6px 10px 5px; } .money { margin-top: 3px; }
+  .slots { grid-template-rows: repeat(9, minmax(0, 1.8fr)) repeat(6, minmax(0, 1fr)); }
+  .slot { gap: 6px; padding: 0 8px 0 7px; }
+  .slot .sp { font-size: 20px; font-weight: 700; letter-spacing: .005em; }
+  .slot .sp.long { font-size: 17px; }          /* a name that won't fit at 20px drops a step instead of losing letters */
+  .slot .sc { font-size: 17px; }
+  .slot .sl { flex-basis: 36px; font-size: 10.5px; padding: 4px 0; }
+  .slot.bench .sp { font-size: 13px; font-weight: 600; color: var(--soft); }
   .slot.bench .sc { font-size: 12px; }
   .slot.bench .sl { flex-basis: 32px; font-size: 8px; padding: 2px 0; }
   .slot.bench.empty .sp { opacity: .5; }
