@@ -31,6 +31,10 @@
     ['f-player', 'f-team', 'f-cost', 'btn-undo', 'btn-keepers', 'btn-menu'].forEach((id) => { const el = $(id); if (el) el.disabled = !op; });
     const go = document.querySelector('.go'); if (go) go.disabled = !op;
   }
+  // the clock takeover and anything else that must clear the control bar read
+  // its real rendered height, not a guess (it changes with fonts and width)
+  const setBarH = () => document.documentElement.style.setProperty('--barH', document.querySelector('.bar').offsetHeight + 'px');
+  setBarH(); window.addEventListener('resize', setBarH); window.addEventListener('load', setBarH);
   $('op-pill').addEventListener('click', () => {
     if (isOperator()) {
       if (confirm('Lock this device? It will become watch-only until the code is entered again.')) {

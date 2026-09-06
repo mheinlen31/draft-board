@@ -494,7 +494,7 @@ body {
   display: grid;
   grid-template-columns: minmax(0, 1fr) clamp(310px, 26vw, 430px);
   gap: clamp(16px, 2.5vw, 40px);
-  padding: 78px clamp(16px, 2.5vw, 34px) clamp(16px, 2vw, 28px);
+  padding: calc(var(--barH, 78px) + 12px) clamp(16px, 2.5vw, 34px) clamp(16px, 2vw, 28px);
 }
 .clock[hidden] { display: none; }
 .clock-stage {
@@ -829,3 +829,17 @@ body.watch .fld, body.watch .go { cursor: not-allowed; }
   .nom-pill { font-size: 15px; } .nom-pill b { font-size: 16px; }
   .nomtag { font-size: 10.5px; }
 }
+
+/* ---- brand first: the sync state is a dot in the title, the lock lives on the right ---- */
+.bar-title { font-size: 31px; display: flex; align-items: center; }
+.bar-sub { font-size: 11.5px; letter-spacing: .28em; margin-top: 3px; }
+@media (max-width: 1150px) { .bar-title { font-size: 24px; } .bar-sub { font-size: 10px; } }
+.sync-pill { display: inline-block; width: 9px; height: 9px; margin: 2px 0 0 10px; padding: 0; border: 0; border-radius: 50%;
+  background: #6b7a90; font-size: 0; line-height: 0; vertical-align: middle; flex: 0 0 auto; }
+.sync-pill.live { background: #6ee7a8; box-shadow: 0 0 10px rgba(110,231,168,.55); animation: livepulse 2.6s ease-in-out infinite; }
+.sync-pill.off { background: #ffb35c; box-shadow: 0 0 8px rgba(255,179,92,.45); animation: none; }
+.sync-pill::before, .sync-pill.live::before, .sync-pill.off::before { content: none; }
+.op-pill { margin-left: 2px; }
+@media (prefers-reduced-motion: reduce) { .sync-pill.live { animation: none; } }
+.bar-brand { flex: 0 0 auto; }
+.bar-title { white-space: nowrap; }
