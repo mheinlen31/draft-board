@@ -17,7 +17,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Saira+Condensed:wght@500;600;700;800&family=Saira:wght@500;600;700;800&display=swap">
-<link rel="stylesheet" href="css/draft.css?v=20260905210207">
+<link rel="stylesheet" href="css/draft.css?v=20260906103800">
 </head>
 <body>
 
@@ -105,8 +105,12 @@
     <div class="finale-stats" id="finale-stats"></div>
     <div class="finale-teams" id="finale-teams"></div>
     <div class="finale-foot">tap anywhere to close · results are in the ⋯ menu</div>
+    <button class="go gr-open" id="btn-grades" type="button">Draft grades →</button>
   </div>
 </div>
+
+<!-- draft grades (only once the last spot fills) -->
+<div id="grades" class="finale grades" hidden></div>
 
 <!-- keeper setup modal -->
 <div id="keeper-modal" class="modal" hidden>
@@ -164,6 +168,7 @@
     <div class="modal-head"><h2>Board</h2><button class="mini" id="menu-close" type="button">Close</button></div>
     <div class="menu-list">
       <button class="menu-item" id="m-order" type="button">Nomination order…</button>
+      <button class="menu-item" id="m-grades" type="button">Draft grades</button>
       <button class="menu-item" id="m-export" type="button">Export results (.json)</button>
       <button class="menu-item" id="m-csv" type="button">Export picks (.csv)</button>
       <button class="menu-item" id="m-mute" type="button">Sound</button>
@@ -174,11 +179,12 @@
   </div>
 </div>
 
-<script src="js/keeperdata.js?v=20260905210207"></script>
-<script src="js/players.js?v=20260905210207"></script>
-<script src="js/engine.js?v=20260905210207"></script>
-<script src="js/store.js?v=20260905210207"></script>
-<script src="js/sync.js?v=20260905210207"></script>
-<script src="js/app.js?v=20260905210207"></script>
+<script src="js/keeperdata.js?v=20260906103800"></script>
+<script src="js/players.js?v=20260906103800"></script>
+<script src="js/engine.js?v=20260906103800"></script>
+<script src="js/grades.js?v=20260906103800"></script>
+<script src="js/store.js?v=20260906103800"></script>
+<script src="js/sync.js?v=20260906103800"></script>
+<script src="js/app.js?v=20260906103800"></script>
 </body>
 </html>

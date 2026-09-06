@@ -481,6 +481,22 @@
   }
   $('finale').addEventListener('click', () => { finaleDismissed = true; $('finale').hidden = true; });
 
+  /* ---------- draft grades: the finale's second page ---------- */
+  function draftDone() {
+    const teams = state().teams;
+    return state().picks.length > 0 && teams.reduce((s, t) => s + E.teamState(t).open, 0) === 0;
+  }
+  function showGrades() {
+    if (!draftDone()) return flash('Grades unlock when the last spot fills');
+    finaleDismissed = true; $('finale').hidden = true; mModal.hidden = true;
+    const box = $('grades');
+    box.hidden = false;
+    box.innerHTML = '<div class="finale-inner"><div class="finale-eyebrow">Sunday Funday</div><h2 class="finale-title">Draft Grades</h2><p class="gr-note">grading…</p></div>';
+    window.DraftGrades.render(box, state(), COLORS);
+  }
+  $('btn-grades').addEventListener('click', (e) => { e.stopPropagation(); showGrades(); });
+  $('grades').addEventListener('click', () => { $('grades').hidden = true; });
+
   $('ticker').addEventListener('click', (e) => {
     const t = e.target.closest('.tick');
     if (!t || !t.dataset.n) return;
@@ -621,6 +637,7 @@
     }).join('');
     $('order-save').disabled = orderDraft.length !== teams.length;
   }
+  $('m-grades').addEventListener('click', showGrades);
   $('m-order').addEventListener('click', () => {
     mModal.hidden = true; orderDraft = (state().nomOrder || []).slice(); renderOrder(); oModal.hidden = false;
   });
