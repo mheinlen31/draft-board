@@ -811,7 +811,7 @@ body.watch .fld, body.watch .go { cursor: not-allowed; }
    canvas scales up about 1.4x but the viewer sits ten feet away. The
    starting nine are what the room reads: they get taller rows and bigger
    type. The bench stays compact, and all fifteen spots stay on screen. */
-@media (min-width: 1200px) and (min-height: 900px) {
+@media (min-width: 1200px) {
   .grid { gap: 8px; padding: 8px 10px; }
   .team-top { padding: 6px 10px 5px; } .money { margin-top: 3px; }
   .slots { grid-template-rows: repeat(9, minmax(0, 1.8fr)) repeat(6, minmax(0, 1fr)); }
@@ -892,3 +892,24 @@ body.watch .slot.drafted { cursor: default; }
 .grades .gr-n b { font-size: 20px; }
 .grades .gr-grade { font-size: 34px; }
 .grades .finale-foot { margin-top: 10px; }
+
+/* a Mac mirroring at the TV's own resolution runs the browser at 125% zoom to
+   match the iPad's scale; that leaves ~864px of height, so the bench rows and
+   the starters give back a point or two rather than clip */
+@media (min-width: 1200px) and (max-height: 899px) {
+  .slot .sp { font-size: 19px; } .slot .sc { font-size: 16px; }
+  .slot.bench .sp { font-size: 12px; } .slot.bench .sc { font-size: 11px; }
+  .slot.bench .sl { font-size: 7.5px; padding: 1px 0; }
+}
+/* a Mac mirroring at the TV's own 1920px: the cards are 370px wide and the rows
+   31px tall, so the type grows to match what the iPad mirror achieved by scaling */
+@media (min-width: 1800px) and (min-height: 960px) {
+  .slot .sp { font-size: 24px; } .slot .sc { font-size: 20px; }
+  .slot .sl { flex-basis: 44px; font-size: 12px; padding: 5px 0; }
+  .slot.bench .sp { font-size: 15px; } .slot.bench .sc { font-size: 14px; }
+  .slot.bench .sl { flex-basis: 36px; font-size: 9px; padding: 3px 0; }
+  .team-top h2 { font-size: 24px; }
+  .m-left b { font-size: 40px; } .m-max b { font-size: 28px; } .m span { font-size: 11px; } .m-mini b { font-size: 16px; }
+  .tick { font-size: 19px; } .tick i { height: 20px; }
+  .nom-pill { font-size: 17px; } .nom-pill b { font-size: 18px; } .nomtag { font-size: 12px; }
+}

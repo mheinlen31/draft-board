@@ -33,6 +33,10 @@
   }
   // the clock takeover and anything else that must clear the control bar read
   // its real rendered height, not a guess (it changes with fonts and width)
+  // keep the screen awake while the board is up (Safari 16.4+, Chrome); re-take the lock when we come back
+  let wake = null;
+  const keepAwake = async () => { try { if ('wakeLock' in navigator && document.visibilityState === 'visible') wake = await navigator.wakeLock.request('screen'); } catch (e) { /* denied or unsupported: harmless */ } };
+  document.addEventListener('visibilitychange', keepAwake); document.addEventListener('pointerdown', keepAwake, { once: true }); keepAwake();
   const setBarH = () => document.documentElement.style.setProperty('--barH', document.querySelector('.bar').offsetHeight + 'px');
   setBarH(); window.addEventListener('resize', setBarH); window.addEventListener('load', setBarH);
   $('op-pill').addEventListener('click', () => {
